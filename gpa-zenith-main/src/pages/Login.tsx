@@ -18,7 +18,7 @@ export const Login: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // محاكاة تسجيل دخول (عشوائي بس)
+
     setTimeout(() => {
       alert(`Welcome back ${formData.email || 'student'}!`);
       setIsLoading(false);

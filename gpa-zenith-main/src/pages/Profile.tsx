@@ -17,6 +17,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { StatusIndicator } from '@/components/ui/status-indicator';
 
+
 export const Profile: React.FC = () => {
   // بيانات وهمية للـ user
   const user = {
@@ -34,17 +35,25 @@ export const Profile: React.FC = () => {
     newPassword: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    // محاكاة تحديث
-    setTimeout(() => {
-      alert('Profile updated successfully!');
-      setIsLoading(false);
-      setFormData({ ...formData, newPassword: '' });
-    }, 1000);
-  };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
+  try {
+    const res = await fetch("/api/users/update", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+    const data = await res.json();
+    toast({ title: "Profile updated!" });
+  } catch (err) {
+    toast({ title: "Failed to update profile", variant: "destructive" });
+  } finally {
+    setIsLoading(false);
+    setFormData({ ...formData, newPassword: "" });
+  }
+};
+//دير عالتوست دورة تلقاه في ملف الهوكس
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({

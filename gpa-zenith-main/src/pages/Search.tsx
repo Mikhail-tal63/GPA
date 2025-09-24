@@ -66,11 +66,24 @@ export const Search: React.FC = () => {
     }
   }, [location.search]);
 
-  const performSearch = (query: string) => {
-    if (!query.trim()) {
-      setResults([]);
-      return;
-    }
+ const performSearch = async (query: string) => {
+  if (!query.trim()) {
+    setResults([]);
+    return;
+  }
+
+  setIsLoading(true);
+  try {
+    const res = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`);
+    const data: UserResult[] = await res.json();
+    setResults(data);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
     setIsLoading(true);
     setTimeout(() => {

@@ -1,0 +1,97 @@
+// controllers/userController.js
+import User from "../models/User.js";
+import bcrypt from "bcryptjs";
+import generateTokenAndSetCookie from "../generate/generateJwtAndSetToken.js";
+import fs from "fs"; // مسار الملف عندك
+
+
+
+export const searchUsers = async (req, res) => {
+  const query = req.query.q || "";
+  if (!query.trim()) return res.json([]);
+
+  const regex = new RegExp(query, "i"); // search case-insensitive
+  const users = await User.find({
+    $or: [{ name: regex }, { email: regex }]
+  }).select("name email avatarUrl privacy status gpa semesters");
+
+  // إخفاء GPA و semesters لو المستخدم private
+  const result = users.map(u => ({
+    id: u._id,
+    name: u.name,
+    email: u.email,
+    avatarUrl: u.avatarUrl,
+    privacy: u.privacy,
+    status: u.status,
+    gpa: u.privacy ? undefined : u.gpa,
+    semesters: u.privacy ? undefined : u.semesters,
+  }));
+
+  res.json(result);
+};
+
+
+export const getMe = async (req, res) => {
+  const user = await User.findById(req.user._id).select("-password");
+  res.json(user);
+};
+
+export const updateProfile = async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  const { name, status, privacy, password } = req.body;
+
+  if (name) user.name = name;
+  if (status) user.status = status;
+  if (privacy !== undefined) user.privacy = privacy;
+  if (password) user.password = password; // تأكد تعمل hash قبل الحفظ
+
+  await user.save();
+  res.json({
+    message: "Profile updated",
+    user: {
+      name: user.name,
+      email: user.email,
+      status: user.status,
+      privacy: user.privacy,
+      avatarUrl: user.avatarUrl
+    },
+  });
+};
+
+
+
+
+export const loginUser = async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+    
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+
+      
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+
+        const token = generateTokenAndSetCookie(user._id, res);
+
+        const { password: pwd, ...userData } = user._doc;
+
+        res.status(200).json({
+            message: "Login successful",
+            user: userData,
+            token
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
