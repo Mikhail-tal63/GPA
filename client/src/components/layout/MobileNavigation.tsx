@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'node_modules/react-i18next';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Search, BookOpen, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
