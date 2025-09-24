@@ -1,0 +1,306 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* GPA App Design System - Academic Professional Theme
+All colors MUST be HSL for consistency across light/dark modes.
+*/
+
+@layer base {
+  :root {
+    /* Core Background & Text */
+    --background: 210 20% 98%;
+    --foreground: 215 25% 15%;
+
+    /* Card System */
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 15%;
+
+    /* Interactive Elements */
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 15%;
+
+    /* Academic Blue Primary */
+    --primary: 214 84% 56%;
+    --primary-foreground: 0 0% 98%;
+    --primary-hover: 214 84% 51%;
+
+    /* Teal Accent for Success/Progress */
+    --accent: 175 77% 41%;
+    --accent-foreground: 0 0% 98%;
+    --accent-hover: 175 77% 36%;
+
+    /* Warm Secondary */
+    --secondary: 215 20% 93%;
+    --secondary-foreground: 215 25% 25%;
+    --secondary-hover: 215 20% 88%;
+
+    /* Muted Backgrounds */
+    --muted: 215 20% 95%;
+    --muted-foreground: 215 15% 45%;
+
+    /* Grade Colors */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* Status Indicators */
+    --status-online: 142 76% 36%;
+    --status-away: 38 92% 50%;
+    --status-busy: 0 72% 51%;
+    --status-offline: 215 15% 65%;
+
+    /* Borders & Inputs */
+    --border: 215 20% 88%;
+    --input: 215 20% 91%;
+    --ring: 214 84% 56%;
+
+    /* Layout */
+    --radius: 0.75rem;
+    --radius-sm: 0.5rem;
+    --radius-lg: 1rem;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(214 84% 56%) 0%, hsl(175 77% 41%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(215 20% 98%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(214 84% 56%) 0%, hsl(214 84% 46%) 50%, hsl(175 77% 41%) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 2px 4px -1px hsl(215 25% 15% / 0.06);
+    --shadow: 0 4px 6px -1px hsl(215 25% 15% / 0.08);
+    --shadow-lg: 0 10px 15px -3px hsl(215 25% 15% / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(215 25% 15% / 0.12);
+
+    /* Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+
+  /* Arabic font support */
+  html[dir="rtl"] {
+    font-family: 'Noto Sans Arabic', 'Cairo', sans-serif;
+  }
+}
+
+@layer components {
+  /* Card variants */
+  .card-gradient {
+    background: var(--gradient-card);
+    box-shadow: var(--shadow);
+  }
+
+  .card-hover {
+    transition: var(--transition-smooth);
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Semester post styles */
+  .semester-card {
+    background: var(--gradient-card);
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    transition: var(--transition-smooth);
+  }
+
+  .semester-card:hover {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .semester-card.expanded {
+    border-color: hsl(var(--primary) / 0.3);
+    box-shadow: var(--shadow-xl);
+  }
+
+  /* Status indicators */
+  .status-dot {
+    @apply w-3 h-3 rounded-full inline-block;
+  }
+
+  .status-online {
+    background-color: hsl(var(--status-online));
+  }
+
+  .status-away {
+    background-color: hsl(var(--status-away));
+  }
+
+  .status-busy {
+    background-color: hsl(var(--status-busy));
+  }
+
+  .status-offline {
+    background-color: hsl(var(--status-offline));
+  }
+
+  /* Grade colors */
+  .grade-excellent {
+    @apply text-success bg-success/10 border-success/20;
+  }
+
+  .grade-good {
+    @apply text-accent bg-accent/10 border-accent/20;
+  }
+
+  .grade-average {
+    @apply text-warning bg-warning/10 border-warning/20;
+  }
+
+  .grade-poor {
+    @apply text-destructive bg-destructive/10 border-destructive/20;
+  }
+
+  /* Navigation styles */
+  .nav-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200;
+  }
+
+  .nav-item:hover {
+    @apply bg-secondary;
+  }
+
+  .nav-item.active {
+    @apply bg-primary text-primary-foreground shadow-sm;
+  }
+
+  /* Animation classes */
+  .expand-animation {
+    animation: expand 0.3s ease-out;
+  }
+
+  .collapse-animation {
+    animation: collapse 0.3s ease-out;
+  }
+
+  .fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .slide-up {
+    animation: slideUp 0.4s var(--transition-bounce);
+  }
+}
+
+@keyframes expand {
+  from {
+    max-height: 0;
+    opacity: 0;
+  }
+  to {
+    max-height: 1000px;
+    opacity: 1;
+  }
+}
+
+@keyframes collapse {
+  from {
+    max-height: 1000px;
+    opacity: 1;
+  }
+  to {
+    max-height: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* RTL Support */
+html[dir="rtl"] .semester-card {
+  transform: scaleX(-1);
+}
+
+html[dir="rtl"] .semester-card > * {
+  transform: scaleX(-1);
+}
