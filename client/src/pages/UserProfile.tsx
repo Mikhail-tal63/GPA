@@ -40,39 +40,27 @@ export const UserProfile: React.FC = () => {
     }
   }, [userId]);
 
-  const loadUserProfile = (id: string) => {
-    setTimeout(() => {
-      const mockProfile: UserProfile = {
-        id,
-        name: id === '2' ? 'Sara Mohammed' : 'Ahmed Ali',
-        email: id === '2' ? 'sara.mohammed@university.edu' : 'ahmed.ali@university.edu',
-        privacy: id === '2', // User 2 private
-        status: id === '2' ? 'Computer Science major' : 'Studying for finals',
-        gpa: id === '2' ? undefined : 3.85,
-        semesters: id === '2' ? undefined : [
-          {
-            id: '1',
-            name: 'Fall 2023',
-            gpa: 3.8,
-            courses: [
-              { name: 'Algorithms', code: 'CS301', grade: 3.9 },
-              { name: 'Databases', code: 'CS305', grade: 3.7 },
-            ],
-          },
-          {
-            id: '2',
-            name: 'Spring 2024',
-            gpa: 3.9,
-            courses: [
-              { name: 'Machine Learning', code: 'CS401', grade: 4.0 },
-              { name: 'Software Engineering', code: 'CS402', grade: 3.8 },
-            ],
-          },
-        ],
-      };
-      setProfile(mockProfile);
+  const loadUserProfile = async (id: string) => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(`/api/users/${id}`, {
+        method: "GET",
+        credentials: "include", // لو عندك JWT cookies
+        headers: { "Content-Type": "application/json" }
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch profile");
+      }
+
+      const data = await res.json();
+      setProfile(data.user); // لازم الـ API يرجع { user: {...} }
+    } catch (err) {
+      console.error("Error loading profile:", err);
+      setProfile(null);
+    } finally {
       setIsLoading(false);
-    }, 500);
+    }
   };
 
   if (isLoading) {

@@ -6,12 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 export const Signup: React.FC = () => {
   const { t } = useTranslation();
-  const { register } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +24,7 @@ export const Signup: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: 'Password mismatch',
@@ -39,16 +37,35 @@ export const Signup: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await register(formData.name, formData.email, formData.password);
-      navigate('/');
+      const res = await fetch("http://localhost:3000/api/users/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // باش يحفظ الكوكيز متاع jwt
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.message || "Failed to register");
+      }
+
       toast({
         title: 'Welcome to GPA Manager!',
-        description: 'Your account has been created successfully.',
+        description: data.message || 'Your account has been created successfully.',
       });
-    } catch (error) {
+
+      navigate("/");
+    } catch (error: any) {
       toast({
         title: 'Registration failed',
-        description: 'Please check your information and try again.',
+        description: error.message || 'Please check your information and try again.',
         variant: 'destructive',
       });
     } finally {
