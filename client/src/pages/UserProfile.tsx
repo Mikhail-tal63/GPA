@@ -43,7 +43,7 @@ export const UserProfile: React.FC = () => {
  const loadUserProfile = async (id: string) => {
   try {
     setIsLoading(true);
-    const res = await fetch(`http://localhost:3000/api/users/${id}`, {
+    const res = await fetch(`http://localhost:4000/api/users/${id}`, {
       method: "GET",
       credentials: "include", // لو عندك JWT cookies
       headers: { "Content-Type": "application/json" }

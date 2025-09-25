@@ -13,7 +13,7 @@ import { Search } from "./pages/Search";
 import { Tips } from "./pages/Tips";
 import NotFound from "./pages/NotFound";
 import "./lib/i18n";
-
+import { UserProfile } from "./pages/UserProfile";
 const queryClient = new QueryClient();
 
 // Protected Route Component
@@ -97,6 +97,7 @@ const App = () => (
               <Route path="search" element={<Search />} />
               <Route path="tips" element={<Tips />} />
               <Route path="account" element={<Profile />} />
+                <Route path="users/:userId" element={<UserProfile />} />
             </Route>
             
             {/* Catch-all route */}
