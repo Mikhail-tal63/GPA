@@ -21,7 +21,6 @@ export const getUserById = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 export const searchUsers = async (req, res) => {
   const query = req.query.q || "";
   if (!query.trim()) return res.json([]);
@@ -45,7 +44,6 @@ export const searchUsers = async (req, res) => {
 
   res.json(result);
 };
-
 
 export const getMe = async (req, res) => {
   const user = await User.findById(decoded.user_id).select("-password");
@@ -77,7 +75,6 @@ export const updateProfile = async (req, res) => {
     },
   });
 };
-
 
 export const signupUser = async (req, res) => {
   try {
@@ -119,7 +116,6 @@ export const signupUser = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 export const loginUser = async (req, res) => {
   console.log("Received login request:", req.body);
