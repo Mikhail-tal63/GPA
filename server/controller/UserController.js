@@ -5,6 +5,22 @@ import generateTokenAndSetCookie from "../generate/generateJwtAndSetToken.js";
 
 
 
+export const getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select("-password") // منع إرسال الباسورد
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 export const searchUsers = async (req, res) => {
   const query = req.query.q || "";
@@ -108,37 +124,35 @@ export const signupUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   console.log("Received login request:", req.body);
 
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
-    try {
+  try {
     console.log("Login attempt:", email, password);
 
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(400).json({ message: "Invalid credentials" });
-        }
-console.log("User found:", user);
-      
-       console.log("Comparing passwords:", password, user.password);
-const isMatch = await bcrypt.compare(password, user.password);
-console.log("Password match:", isMatch);
-
-        if (!isMatch) {
-            return res.status(400).json({ message: "Invalid credentials" });
-        }
-
-        const token = generateTokenAndSetCookie(user._id, res);
-
-        const { password: pwd, ...userData } = user._doc;
-
-        res.status(200).json({
-            message: "Login successful",
-            user: userData,
-            token
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Server error" });
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentialss" });
     }
+    console.log("User found:", user);
+
+    const isPasswordCorrect = await bcrypt.compare(password, user.password || "");
+    console.log("Comparing passwords:", password, user.password);
+    console.log("Password match:", isPasswordCorrect ? "✅" : "❌");
+
+    if (!isPasswordCorrect) {
+      return res.status(400).json({ message: "Invalid credentialsss" });
+    }
+
+    const token = generateTokenAndSetCookie(user._id, res);
+    const { password: pwd, ...userData } = user._doc;
+
+    res.status(200).json({
+      message: "Login successful",
+      user: userData,
+      token,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
 };
