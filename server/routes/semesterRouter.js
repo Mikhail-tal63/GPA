@@ -1,7 +1,5 @@
 import express from "express";
 import { getSemesters, createSemester, deleteSemester } from "../controller/SemesterController.js";
-
-
 const router = express.Router();
 
 

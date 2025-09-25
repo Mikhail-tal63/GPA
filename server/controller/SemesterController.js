@@ -29,7 +29,6 @@ export const createSemester = async (req, res) => {
   }
 };
 
-// Delete a semester
 export const deleteSemester = async (req, res) => {
   try {
     const { id } = req.params;

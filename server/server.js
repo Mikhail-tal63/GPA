@@ -10,7 +10,7 @@ connectDB();
 const app = express();
 
 app.use(cors({
-  origin: "http://localhost:8080", // ← بدل 8081 باللي تشغّل عليه الفرونت
+  origin: "http://localhost:8080",
   credentials: true,
 }));
 
@@ -20,9 +20,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-// Routes
 import authRoutes from "./routes/userRouter.js";
-import semesterRoutes from "./routes/router.js";
+import semesterRoutes from "./routes/semesterRouter.js";
 
 app.use("/api/users", authRoutes);
 app.use("/api/semesters", semesterRoutes);
