@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'node_modules/react-i18next';
+import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search as SearchIcon, User, Lock, GraduationCap } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { StatusIndicator } from '@/components/ui/status-indicator';
-
+import axios from 'axios';
 interface UserResult {
   id: string;
   name: string;
@@ -27,36 +27,28 @@ export const Search: React.FC = () => {
   const [results, setResults] = useState<UserResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mock data
-  const allUsers: UserResult[] = [
-    {
-      id: '1',
-      name: 'Ahmed Ali',
-      email: 'ahmed.ali@university.edu',
-      privacy: false,
-      status: 'Studying for finals',
-      gpa: 3.85,
-      semesters: 6,
-    },
-    {
-      id: '2',
-      name: 'Sara Mohammed',
-      email: 'sara.mohammed@university.edu',
-      privacy: true,
-      status: 'Computer Science major',
-    },
-    {
-      id: '3',
-      name: 'Omar Hassan',
-      email: 'omar.hassan@university.edu',
-      privacy: false,
-      status: 'Available for study groups',
-      gpa: 3.92,
-      semesters: 4,
-    },
-  ];
 
-  // Get initial search query from URL params
+  const performSearch = async (query: string) => {
+  if (!query.trim()) {
+    setResults([]);
+    return;
+  }
+
+  setIsLoading(true);
+  try {
+    const res = await axios.get(
+      `http://localhost:5000/api/users/search?q=${encodeURIComponent(query)}`,
+      { withCredentials: true } 
+    );
+    setResults(res.data); 
+  } catch (err) {
+    console.error(err);
+    setResults([]);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const q = params.get('q');
@@ -66,30 +58,17 @@ export const Search: React.FC = () => {
     }
   }, [location.search]);
 
-  const performSearch = (query: string) => {
-    if (!query.trim()) {
-      setResults([]);
-      return;
-    }
 
-    setIsLoading(true);
-    setTimeout(() => {
-      const filtered = allUsers.filter(user =>
-        user.name.toLowerCase().includes(query.toLowerCase()) ||
-        user.email.toLowerCase().includes(query.toLowerCase())
-      );
-      setResults(filtered);
-      setIsLoading(false);
-    }, 600); // delay للتجربة
-  };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      performSearch(searchQuery.trim());
-    }
-  };
+
+const handleSearch = (e: React.FormEvent) => {
+  e.preventDefault();
+  if (searchQuery.trim()) {
+    navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    performSearch(searchQuery.trim());
+  }
+};
+
 
   const handleUserClick = (userId: string) => {
     navigate(`/users/${userId}`);

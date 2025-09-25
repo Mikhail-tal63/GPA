@@ -1,4 +1,4 @@
-import Semester from "../models/Semester.js";
+import Semester from "../models/semesterModel.js";
 
 
 export const getSemesters = async (req, res) => {

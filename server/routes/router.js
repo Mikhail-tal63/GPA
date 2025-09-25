@@ -1,10 +1,10 @@
 import express from "express";
-import { getSemesters, createSemester, deleteSemester } from "../controllers/semesterController.js";
-import { protectRoute } from "../middleware/authMiddleware.js";
+import { getSemesters, createSemester, deleteSemester } from "../controller/SemesterController.js";
+
 
 const router = express.Router();
 
-router.use(protectRoute); 
+
 
 router.get("/", getSemesters);
 router.post("/create", createSemester);

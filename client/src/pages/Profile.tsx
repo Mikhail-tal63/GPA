@@ -16,44 +16,65 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { StatusIndicator } from '@/components/ui/status-indicator';
+import { useEffect } from 'react';
+import axios from 'axios';
+import { useToast } from '@/hooks/use-toast';
 
 
 export const Profile: React.FC = () => {
-  // بيانات وهمية للـ user
-  const user = {
-    name: 'John Doe',
-    email: 'student@university.edu',
-    avatarUrl: '',
-    privacy: false,
-  };
 
+
+const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<UserType | null>(null);
   const [formData, setFormData] = useState({
-    name: user.name,
-    status: 'Excited to learn!',
-    privacy: user.privacy,
-    newPassword: '',
-  });
+  name: '',
+  status: 'Excited to learn!',
+  privacy: false,
+  newPassword: '',
+});
+
+
+
+useEffect(() => {
+  const fetchUser = async () => {
+    try {
+      const res = await axios.get("http://localhost:4000/api/users/me", { withCredentials: true });
+      setUser(res.data);
+      setFormData({
+        name: res.data.name,
+        status: res.data.status || '',
+        privacy: res.data.privacy,
+        newPassword: '',
+      });
+      
+    } catch (err) {
+      toast({ title: "Failed to load profile", variant: "destructive" });
+    }
+  };
+  fetchUser();
+}, []);
+
 
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setIsLoading(true);
   try {
-    const res = await fetch("/api/users/update", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
-    const data = await res.json();
+    const res = await axios.put(
+      "http://localhost:4000/api/users/update",
+      formData,
+      { withCredentials: true }
+    );
+    setUser(res.data); 
     toast({ title: "Profile updated!" });
+    setFormData({ ...formData, newPassword: "" });
   } catch (err) {
-    toast({ title: "Failed to update profile", variant: "destructive" });
+    toast({ title: err.response?.data?.message || "Failed to update profile", variant: "destructive" });
   } finally {
     setIsLoading(false);
-    setFormData({ ...formData, newPassword: "" });
   }
 };
-//دير عالتوست دورة تلقاه في ملف الهوكس
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -63,11 +84,9 @@ const handleSubmit = async (e: React.FormEvent) => {
   };
 
   const handlePrivacyToggle = (checked: boolean) => {
-    setFormData({
-      ...formData,
-      privacy: checked,
-    });
-  };
+  setFormData({ ...formData, privacy: checked });
+};
+
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -83,10 +102,10 @@ const handleSubmit = async (e: React.FormEvent) => {
           {/* Avatar Section */}
           <div className="flex items-center gap-6">
             <div className="relative">
-              {user.avatarUrl ? (
+              {user?.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
-                  alt={user.name}
+                  alt={user.name || 'User' }
                   className="w-20 h-20 rounded-full object-cover"
                 />
               ) : (
@@ -102,7 +121,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             </div>
             <div className="flex-1">
               <h2 className="text-xl font-semibold">{formData.name}</h2>
-              <p className="text-sm text-muted-foreground">{user.email}</p>
+              <p className="text-sm text-muted-foreground">{user?.email}</p>
               <div className="flex items-center gap-2 mt-2">
                 <Badge variant={formData.privacy ? 'secondary' : 'default'}>
                   {formData.privacy ? 'Private' : 'Public'}
@@ -241,4 +260,4 @@ const handleSubmit = async (e: React.FormEvent) => {
     </div>
   );
 };
-``
+

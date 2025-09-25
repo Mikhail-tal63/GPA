@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'node_modules/react-i18next';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, GraduationCap, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,8 +8,8 @@ import { SemesterCard } from '@/components/semester/SemesterCard';
 import { CreateSemesterForm } from '@/components/semester/CreateSemesterForm';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import axios from "axios";
 
-// utils
 import { calculateCumulativeGPA } from '@/utils/gpa';
 
 
@@ -20,62 +20,92 @@ interface Semester {
   courses: Course[];
 }
 
+
+
+
+
+
 export const Home: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // بيانات عشوائية Mock
-  const [semesters, setSemesters] = useState<Semester[]>([
-    {
-      id: '1',
-      name: 'Fall 2023',
-      gpa: 3.6,
-      courses: [
-        { name: 'Computer Science 101', code: 'CS101', grade: 3.7, credits: 3 },
-        { name: 'Mathematics', code: 'MATH201', grade: 3.5, credits: 4 },
-      ],
-    },
-    {
-      id: '2',
-      name: 'Spring 2024',
-      gpa: 3.7,
-      courses: [
-        { name: 'Data Structures', code: 'CS201', grade: 3.9, credits: 3 },
-        { name: 'Physics', code: 'PHYS101', grade: 3.7, credits: 4 },
-      ],
-    },
-  ]);
+
+
+
+  const [semesters, setSemesters] = useState<Semester[]>([]);
+
+useEffect(() => {
+const fetchsemester = async () =>{
+try {
+  const res = await axios.get("http://localhost:5000/api/semesters", {
+        withCredentials: true, 
+      });
+setSemesters(res.data)
+
+
+} catch (error) {
+    toast({
+        title: "Error",
+        description: "Failed to load semesters",
+      });
+}
+
+} 
+  fetchsemester();
+},[]);
+
+
 
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  const handleCreateSemester = (semesterData: {
-    name: string;
-    courses: Course[];
-  }) => {
-    const newSemester: Semester = {
-      id: Date.now().toString(),
-      name: semesterData.name,
-      gpa: semesterData.courses.reduce((acc, c) => acc + c.grade, 0) / semesterData.courses.length,
-      courses: semesterData.courses,
-    };
+const handleCreateSemester = async (semesterData: {
+  name: string;
+  courses: Course[];
+}) => {
+  try {
+    const res = await axios.post(
+      "http://localhost:5000/api/semesters",
+      semesterData,
+      { withCredentials: true }
+    );
 
-    setSemesters([...semesters, newSemester]);
-    setShowCreateForm(false);
+    setSemesters([...semesters, res.data]);
 
     toast({
-      title: t('semesterCreated'),
+      title: t("semesterCreated"),
       description: `${semesterData.name} has been added successfully.`,
     });
-  };
-
-  const handleDeleteSemester = (semesterId: string) => {
-    setSemesters(semesters.filter(s => s.id !== semesterId));
+  } catch (err) {
+    console.error(err);
     toast({
-      title: 'Semester deleted',
-      description: 'The semester has been removed successfully.',
+      title: "Error",
+      description: "Failed to create semester",
     });
-  };
+  }
+};
+
+
+const handleDeleteSemester = async (semesterId: string) => {
+  try {
+    await axios.delete(`http://localhost:5000/api/semesters/${semesterId}`, {
+      withCredentials: true,
+    });
+
+    setSemesters(semesters.filter((s) => s.id !== semesterId));
+
+    toast({
+      title: "Semester deleted",
+      description: "The semester has been removed successfully.",
+    });
+  } catch (err) {
+    console.error(err);
+    toast({
+      title: "Error",
+      description: "Failed to delete semester",
+    });
+  }
+};
 
   const cumulativeGPA = calculateCumulativeGPA(semesters);
 

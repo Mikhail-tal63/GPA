@@ -5,25 +5,49 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import axios from 'axios';
+import { useToast } from '@/hooks/use-toast';
 
 export const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+console.log("Sending login data:", formData);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
 
+  try {
+    const res = await axios.post(
+      "http://localhost:4000/api/users/login", 
+      formData,
+      {
+        withCredentials: true,
+      }
+    );
+    console.log(res.data);
 
-    setTimeout(() => {
-      alert(`Welcome back ${formData.email || 'student'}!`);
-      setIsLoading(false);
-    }, 1200);
-  };
+    toast({
+      title: "Success",
+      description: `Welcome back ${res.data.user.name || formData.email}!`,
+    });
+
+  } catch (err) {
+    console.error(err.response?.data || err);
+    toast({
+      title: "Login Failed",
+      description: err.response?.data?.message || "Something went wrong",
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({

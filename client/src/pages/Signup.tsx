@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'node_modules/react-i18next';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -37,12 +37,12 @@ export const Signup: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const res = await fetch("http://localhost:3000/api/users/signup", {
+      const res = await fetch("http://localhost:4000/api/users/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include", // باش يحفظ الكوكيز متاع jwt
+        credentials: "include", 
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
@@ -62,7 +62,7 @@ export const Signup: React.FC = () => {
       });
 
       navigate("/");
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Registration failed',
         description: error.message || 'Please check your information and try again.',

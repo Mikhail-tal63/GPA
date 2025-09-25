@@ -40,28 +40,29 @@ export const UserProfile: React.FC = () => {
     }
   }, [userId]);
 
-  const loadUserProfile = async (id: string) => {
-    try {
-      setIsLoading(true);
-      const res = await fetch(`/api/users/${id}`, {
-        method: "GET",
-        credentials: "include", // لو عندك JWT cookies
-        headers: { "Content-Type": "application/json" }
-      });
+ const loadUserProfile = async (id: string) => {
+  try {
+    setIsLoading(true);
+    const res = await fetch(`http://localhost:3000/api/users/${id}`, {
+      method: "GET",
+      credentials: "include", // لو عندك JWT cookies
+      headers: { "Content-Type": "application/json" }
+    });
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch profile");
-      }
-
-      const data = await res.json();
-      setProfile(data.user); // لازم الـ API يرجع { user: {...} }
-    } catch (err) {
-      console.error("Error loading profile:", err);
-      setProfile(null);
-    } finally {
-      setIsLoading(false);
+    if (!res.ok) {
+      throw new Error("Failed to fetch profile");
     }
-  };
+
+    const data = await res.json();
+    setProfile(data.user);
+  } catch (err) {
+    console.error("Error loading profile:", err);
+    setProfile(null);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   if (isLoading) {
     return (
