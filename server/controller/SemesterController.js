@@ -9,6 +9,7 @@ export const getSemesters = async (req, res) => {
       : 0;
     res.json({ semesters, cumulativeGPA });
   } catch (err) {
+    console.log(err)
     res.status(500).json({ message: "Failed to load semesters" });
   }
 };

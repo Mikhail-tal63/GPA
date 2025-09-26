@@ -10,7 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
 
-import { calculateCumulativeGPA } from "@/utils/gpa";
+import { calculateCumulativeGPA, Course } from "@/utils/gpa";
 
 interface Semester {
   id: string;
@@ -31,11 +31,10 @@ export const Home: React.FC = () => {
       try {
         const res = await axios.get(
           "http://localhost:4000/api/semesters/getSemesters",
-          {
-            withCredentials: true,
-          }
+          { withCredentials: true }
         );
-        setSemesters(res.data);
+        setSemesters(res.data.semesters || []);
+        // تقدر تخزن cumulativeGPA في state منفصل لو تبي تعرضه
       } catch (error) {
         toast({
           title: "Error",
@@ -59,7 +58,7 @@ export const Home: React.FC = () => {
         { withCredentials: true }
       );
 
-      setSemesters([...semesters, res.data]);
+      setSemesters((prev) => [...prev, res.data]);
 
       toast({
         title: t("semesterCreated"),
@@ -95,7 +94,7 @@ export const Home: React.FC = () => {
     }
   };
 
-  const cumulativeGPA = calculateCumulativeGPA(semesters);
+  //  const cumulativeGPA = calculateCumulativeGPA(semesters);
 
   return (
     <div className="space-y-6">
@@ -109,11 +108,9 @@ export const Home: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">
-              {cumulativeGPA.toFixed(2)}
-            </div>
+            <div className="text-2xl font-bold text-primary">test</div>
             <p className="text-xs text-muted-foreground">
-              Based on {semesters.length} semesters
+              Based on {semesters?.length} semesters
             </p>
           </CardContent>
         </Card>
@@ -127,7 +124,7 @@ export const Home: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-accent">
-              {semesters.length}
+              {semesters?.length}
             </div>
             <p className="text-xs text-muted-foreground">
               Academic progress tracked
@@ -173,7 +170,7 @@ export const Home: React.FC = () => {
           </div>
         )}
 
-        {semesters.length === 0 ? (
+        {semesters?.length === 0 ? (
           <Card className="text-center py-12">
             <CardContent>
               <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
@@ -192,9 +189,9 @@ export const Home: React.FC = () => {
           </Card>
         ) : (
           <div className="space-y-4">
-            {semesters.map((semester) => (
+            {semesters?.map((semester, key) => (
               <SemesterCard
-                key={semester.id}
+                key={key}
                 semester={semester}
                 onDelete={() => handleDeleteSemester(semester.id)}
               />
