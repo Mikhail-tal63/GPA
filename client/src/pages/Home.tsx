@@ -34,7 +34,7 @@ export const Home: React.FC = () => {
           { withCredentials: true }
         );
         setSemesters(res.data.semesters || []);
-        // تقدر تخزن cumulativeGPA في state منفصل لو تبي تعرضه
+        
       } catch (error) {
         toast({
           title: "Error",

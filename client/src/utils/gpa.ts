@@ -1,11 +1,11 @@
 export interface Course {
   name: string;
   code: string;
-  grade: number;
+  grade: number;   // درجة من 0 إلى 100
   credits?: number;
 }
 
-export const calculateGPA = (courses: Course[]): number => {
+export const calculatePercentage = (courses: Course[]): number => {
   if (courses.length === 0) return 0;
 
   const hasCredits = courses?.some(
@@ -13,57 +13,51 @@ export const calculateGPA = (courses: Course[]): number => {
   );
 
   if (hasCredits) {
-    // Weighted average calculation
+    // حساب المتوسط المرجح
     let totalGradePoints = 0;
     let totalCredits = 0;
 
     courses?.forEach((course) => {
-      const credits = course.credits || 1; // Default to 1 if no credits specified
+      const credits = course.credits || 1; // افتراضي 1 لو ما فيه كريديت
       totalGradePoints += course.grade * credits;
       totalCredits += credits;
     });
 
     return Math.round((totalGradePoints / totalCredits) * 100) / 100;
   } else {
-    // Simple mean calculation
+    // متوسط بسيط
     const sum = courses.reduce((acc, course) => acc + course.grade, 0);
     return Math.round((sum / courses.length) * 100) / 100;
   }
 };
 
-export const getGradeColor = (gpa: number): string => {
-  if (gpa >= 3.7) return "grade-excellent";
-  if (gpa >= 3.0) return "grade-good";
-  if (gpa >= 2.0) return "grade-average";
+export const getGradeColor = (percentage: number): string => {
+  if (percentage >= 90) return "grade-excellent";
+  if (percentage >= 75) return "grade-good";
+  if (percentage >= 60) return "grade-average";
   return "grade-poor";
 };
 
-export const getGradeLabel = (gpa: number): string => {
-  if (gpa >= 3.7) return "Excellent";
-  if (gpa >= 3.0) return "Good";
-  if (gpa >= 2.0) return "Average";
+export const getGradeLabel = (percentage: number): string => {
+  if (percentage >= 90) return "Excellent";
+  if (percentage >= 75) return "Good";
+  if (percentage >= 60) return "Average";
   return "Poor";
 };
 
-export const calculateCumulativeGPA = (
-  semesters: Array<{ gpa: number; courses: Course[] }>
+export const calculateCumulativePercentage = (
+  semesters: Array<{ percentage: number; courses: Course[] }>
 ): number => {
   if (semesters.length === 0) return 0;
 
   let totalGradePoints = 0;
   let totalCredits = 0;
-  let hasCreditHours = false;
 
   semesters?.forEach((semester) => {
     semester?.courses?.forEach((course) => {
-      if (course.credits && course.credits > 0) {
-        hasCreditHours = true;
-        totalGradePoints += course.grade * course.credits;
-        totalCredits += course.credits;
-      } else {
-        totalGradePoints += course.grade;
-        totalCredits += 1;
-      }
+      const credits = course.credits || 1;
+      totalGradePoints += course.grade * credits;
+      totalCredits += credits;
     });
   });
 

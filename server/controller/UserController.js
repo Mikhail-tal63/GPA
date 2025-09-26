@@ -45,11 +45,23 @@ export const searchUsers = async (req, res) => {
   res.json(result);
 };
 
+// controller
 export const getMe = async (req, res) => {
-  const user = await User.findById(decoded.user_id).select("-password");
+  try {
+    // middleware لازم يكون ضايف req.user
+    const user = await User.findById(req.user.id).select("-password");
 
-  res.json(user);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error("getMe error:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
 };
+
 
 export const updateProfile = async (req, res) => {
   const user = await User.findById(req.user._id);
@@ -123,13 +135,13 @@ export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    console.log("Login attempt:", email, password);
+
 
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Invalid credentialss" });
     }
-    console.log("User found:", user);
+   
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password || "");
     console.log("Comparing passwords:", password, user.password);
