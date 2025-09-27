@@ -26,23 +26,31 @@ export const Home: React.FC = () => {
 
   const [semesters, setSemesters] = useState<Semester[]>([]);
 
-  useEffect(() => {
-    const fetchsemester = async () => {
-      try {
-        const res = await axios.get(
-          "http://localhost:4000/api/semesters/getSemesters",
-          { withCredentials: true }
-        );
-        setSemesters(res.data.semesters || []);
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to load semesters",
-        });
-      }
-    };
-    fetchsemester();
-  }, []);
+ useEffect(() => {
+  const fetchsemester = async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:4000/api/semesters/getSemesters",
+        { withCredentials: true }
+      );
+
+      const mappedSemesters = (res.data.semesters || []).map((s: any) => ({
+        ...s,
+        id: s._id, // نضمن عندنا دايمًا id
+        gpa: s.gpa ?? 0,
+      }));
+
+      setSemesters(mappedSemesters);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load semesters",
+      });
+    }
+  };
+  fetchsemester();
+}, []);
+
 
   const [showCreateForm, setShowCreateForm] = useState(false);
 const handleCreateSemester = async (semesterData: { name: string; courses: Course[] }) => {

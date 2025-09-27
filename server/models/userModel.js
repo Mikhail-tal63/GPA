@@ -8,9 +8,11 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   avatarUrl: { type: String },
+  iconUrl: { type: String },
   privacy: { type: Boolean, default: false },
   status: { type: String, default: "" },
-   semesters: [
+    gpa: { type: Number, default: null }, 
+  semesters: [
     { type: mongoose.Schema.Types.ObjectId, ref: "Semester" }
   ]
 }, { timestamps: true });

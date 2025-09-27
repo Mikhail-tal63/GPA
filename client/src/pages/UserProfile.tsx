@@ -145,7 +145,7 @@ const loadUserProfile = async (id: string) => {
             <Card className="card-hover text-center">
               <CardContent className="pt-6">
                 <div className="text-3xl font-bold text-success mb-2">
-                  {profile.semesters?.reduce((acc, sem) => acc + sem.courses.length, 0) || 0}
+                  {profile.semesters?.reduce((acc, sem) => acc + sem?.courses?.length, 0) || 0}
                 </div>
                 <p className="text-sm text-muted-foreground">Courses</p>
               </CardContent>
@@ -163,15 +163,15 @@ const loadUserProfile = async (id: string) => {
                     </div>
                     <div>
                       <h3 className="font-semibold">{sem.name}</h3>
-                      <p className="text-sm text-muted-foreground">{sem.courses.length} courses</p>
+                      <p className="text-sm text-muted-foreground">{sem?.courses?.length} courses</p>
                     </div>
                   </div>
-                  <Badge>{sem.gpa.toFixed(2)}</Badge>
+                  <Badge>{sem?.gpa?.toFixed(2)}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {sem.courses.map((course, idx) => (
+                  {sem?.courses?.map((course, idx) => (
                     <div key={idx} className="flex items-center justify-between p-2 bg-muted/30 rounded">
                       <div>
                         <span className="font-medium">{course.name}</span>
