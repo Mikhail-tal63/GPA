@@ -1,4 +1,4 @@
-
+import Semester from "../models/semesterModel.js";
 import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import generateTokenAndSetCookie from "../generate/generateJwtAndSetToken.js";
@@ -9,7 +9,8 @@ export const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
       .select("-password") // منع إرسال الباسورد
-      .lean();
+      .lean()
+        //////////////
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -25,12 +26,12 @@ export const searchUsers = async (req, res) => {
   const query = req.query.q || "";
   if (!query.trim()) return res.json([]);
 
-  const regex = new RegExp(query, "i"); // search case-insensitive
+  const regex = new RegExp(query, "i");
   const users = await User.find({
     $or: [{ name: regex }, { email: regex }]
   }).select("name email avatarUrl privacy status gpa semesters");
 
-  // إخفاء GPA و semesters لو المستخدم private
+ 
   const result = users.map(u => ({
     id: u._id,
     name: u.name,
@@ -45,7 +46,7 @@ export const searchUsers = async (req, res) => {
   res.json(result);
 };
 
-// controller
+
 export const getMe = async (req, res) => {
   try {
     // middleware لازم يكون ضايف req.user
@@ -130,7 +131,7 @@ export const signupUser = async (req, res) => {
 };
 
 export const loginUser = async (req, res) => {
-  console.log("Received login request:", req.body);
+
 
   const { email, password } = req.body;
 

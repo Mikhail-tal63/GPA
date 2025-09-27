@@ -1,42 +1,58 @@
 import Semester from "../models/semesterModel.js";
-
+import User from "../models/userModel.js";
 
 export const getSemesters = async (req, res) => {
   try {
-    const semesters = await Semester.find({ user: req.user._id });
-    const cumulativeGPA = semesters.length
-      ? semesters.reduce((acc, s) => acc + s.gpa, 0) / semesters.length
-      : 0;
-    res.json({ semesters, cumulativeGPA });
+    const semesters = await Semester.find({ user: req.user._id }).lean();
+    res.json({ semesters });
   } catch (err) {
-    console.log(err)
-    res.status(500).json({ message: "Failed to load semesters" });
+    console.error("Error fetching semesters:", err.message);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-
 export const createSemester = async (req, res) => {
+  console.log("BODY:", req.body);
+  console.log("USER:", req.user);
+
   try {
     const { name, courses } = req.body;
+    const userId = req.user.id || req.user._id;
+
+    // إنشاء السيمستر
     const semester = new Semester({
-      user: req.user._id,
+      user: userId,
       name,
       courses,
     });
     await semester.save();
-    res.status(201).json(semester);
+
+    // ربط السيمستر بالمستخدم
+    await User.findByIdAndUpdate(userId, { $push: { semesters: semester._id } });
+
+    // جلب جميع السيمسترات بعد الإضافة
+    const semesters = await Semester.find({ user: userId }).lean();
+
+    // إرجاع كل السيمسترات للفرونت اند
+    res.status(201).json({ semesters });
   } catch (err) {
+    console.error("Create semester error:", err);
     res.status(500).json({ message: "Failed to create semester" });
   }
 };
 
+
 export const deleteSemester = async (req, res) => {
   try {
-    const { id } = req.params;
-    const semester = await Semester.findOneAndDelete({ _id: id, user: req.user._id });
+    const { id } = req.params;  // تأكد إنه هذا موجود
+    if (!id) return res.status(400).json({ message: "Semester ID is required" });
+
+    const semester = await Semester.findByIdAndDelete(id);
     if (!semester) return res.status(404).json({ message: "Semester not found" });
+
     res.json({ message: "Semester deleted successfully" });
   } catch (err) {
-    res.status(500).json({ message: "Failed to delete semester" });
+    console.error("Delete semester error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };

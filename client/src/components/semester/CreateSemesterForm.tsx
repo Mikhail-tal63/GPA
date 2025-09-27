@@ -147,15 +147,15 @@ export const CreateSemesterForm: React.FC<CreateSemesterFormProps> = ({
                     </div>
                     <div>
                       <Label htmlFor={`grade-${index}`}>
-                        {t('grade')} (0-4)
+                        {t('grade')} (0-100)
                       </Label>
                       <Input
                         id={`grade-${index}`}
                         type="number"
                         min="0"
-                        max="4"
-                        step="0.1"
-                        placeholder="4.0"
+                        max="100"
+                        
+                        placeholder="?"
                         value={course.grade || ''}
                         onChange={(e) => updateCourse(index, 'grade', parseFloat(e.target.value) || 0)}
                       />

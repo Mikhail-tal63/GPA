@@ -5,7 +5,7 @@ export interface Course {
   credits?: number;
 }
 
-export const calculatePercentage = (courses: Course[]): number => {
+export const calculateGPA = (courses: Course[]): number => {
   if (courses.length === 0) return 0;
 
   const hasCredits = courses?.some(
