@@ -10,7 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
 
-import { calculateCumulativeGPA, Course } from "@/utils/gpa";
+import { calculatePercentage, Course } from "@/utils/gpa";
 
 interface Semester {
   id: string;
@@ -34,7 +34,6 @@ export const Home: React.FC = () => {
           { withCredentials: true }
         );
         setSemesters(res.data.semesters || []);
-        
       } catch (error) {
         toast({
           title: "Error",
