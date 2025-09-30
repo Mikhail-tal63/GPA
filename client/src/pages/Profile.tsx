@@ -16,9 +16,9 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { StatusIndicator } from "@/components/ui/status-indicator";
+import { useEffect } from "react";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "../config/supabase.config";
 
 export const Profile: React.FC = () => {
   interface UserType {
@@ -268,7 +268,96 @@ export const Profile: React.FC = () => {
           </div>
 
           <Separator />
-          {/* باقي الكود كما هو */}
+
+          {/* Profile Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  type="text"
+                  value={formData.name}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <div className="relative">
+                  <MessageCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="status"
+                    name="status"
+                    type="text"
+                    placeholder="Short status..."
+                    value={formData.status}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    className="pl-10"
+                    maxLength={50}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">New Password (Optional)</Label>
+              <Input
+                id="newPassword"
+                name="newPassword"
+                type="password"
+                placeholder="Leave blank to keep current password"
+                value={formData.newPassword}
+                onChange={handleChange}
+                disabled={isLoading}
+              />
+            </div>
+
+            {/* Privacy Settings */}
+            <div className="space-y-4">
+              <Label className="text-base font-medium">Privacy Settings</Label>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  {formData.privacy ? (
+                    <Lock className="w-5 h-5 text-muted-foreground" />
+                  ) : (
+                    <Unlock className="w-5 h-5 text-muted-foreground" />
+                  )}
+                  <div>
+                    <p className="font-medium">
+                      {formData.privacy ? "Private" : "Public"} Profile
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {formData.privacy
+                        ? "Only you can see your GPA and semesters"
+                        : "Other users can view your academic progress"}
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={formData.privacy}
+                  onCheckedChange={handlePrivacyToggle}
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
+
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Updating...
+                </div>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>
