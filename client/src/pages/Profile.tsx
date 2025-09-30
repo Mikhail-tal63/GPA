@@ -7,6 +7,7 @@ import {
   Save,
   GraduationCap,
   MessageCircle 
+  ,LogOut 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,6 +56,20 @@ useEffect(() => {
   fetchUser();
 }, []);
 
+const handleLogout = async () => {
+  try {
+    await axios.post("http://localhost:4000/api/users/logout", {}, { withCredentials: true });
+    toast({ title: "Logged out successfully" });
+
+  
+    setUser(null);
+
+    
+    window.location.href = "/login"; 
+  } catch (err) {
+    toast({ title: "Failed to logout", variant: "destructive" });
+  }
+};
 
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -269,6 +284,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               className="w-full"
               disabled={isLoading}
             >
+
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -281,6 +297,14 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </>
               )}
             </Button>
+                          <Button
+  variant="destructive"
+  className="w-full flex items-center gap-2"
+  onClick={handleLogout}
+>
+  <LogOut className="w-4 h-4" />
+  Logout
+</Button>
           </form>
         </CardContent>
       </Card>

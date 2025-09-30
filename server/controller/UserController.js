@@ -47,6 +47,15 @@ export const searchUsers = async (req, res) => {
 };
 
 
+export const logoutUser = async (req, res) => {
+    try {
+        res.cookie("jwt", "", { maxAge: 1 })
+        res.status(200).json({ message: "user looged out sexyfully" })
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+        console.log("error in login ", err.message)
+    }
+}
 export const getMe = async (req, res) => {
   try {
   
