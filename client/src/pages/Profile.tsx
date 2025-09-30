@@ -119,19 +119,68 @@ const handleSubmit = async (e: React.FormEvent) => {
                 className="absolute -bottom-1 -right-1 border-2 border-background"
               />
             </div>
-            <div className="flex-1">
-              <h2 className="text-xl font-semibold">{formData.name}</h2>
-              <p className="text-sm text-muted-foreground">{user?.email}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <Badge variant={formData.privacy ? 'secondary' : 'default'}>
-                  {formData.privacy ? 'Private' : 'Public'}
-                </Badge>
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <GraduationCap className="w-3 h-3" />
-                  Student
-                </Badge>
-              </div>
-            </div>
+           <div className="flex-1">
+  <div className="flex items-center gap-2">
+    <h2 className="text-xl font-semibold">{formData.name}</h2>
+    {/* الأيقونة الصغيرة يمين الاسم */}
+    {user?.iconUrl ? (
+      <img
+        src={user.iconUrl}
+        alt="icon"
+        className="w-6 h-6 rounded-full object-cover border border-muted-foreground"
+      />
+    ) : (
+      <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs">
+        🧩
+      </div>
+    )}
+    <Button
+      variant="ghost"
+      size="sm"
+      className="h-6 px-2 text-xs"
+      onClick={() => document.getElementById("iconUpload")?.click()}
+    >
+      Change
+    </Button>
+    <input
+      id="iconUpload"
+      type="file"
+      accept="image/*"
+      className="hidden"
+      onChange={async (e) => {
+        if (!e.target.files?.[0]) return;
+        const formDataFile = new FormData();
+        formDataFile.append("icon", e.target.files[0]);
+
+        try {
+          const res = await axios.post(
+            "http://localhost:4000/api/users/upload-icon",
+            formDataFile,
+            {
+              withCredentials: true,
+              headers: { "Content-Type": "multipart/form-data" },
+            }
+          );
+          setUser((prev) => prev ? { ...prev, iconUrl: res.data.iconUrl } : prev);
+          toast({ title: "Icon updated!" });
+        } catch {
+          toast({ title: "Failed to upload icon", variant: "destructive" });
+        }
+      }}
+    />
+  </div>
+  <p className="text-sm text-muted-foreground">{user?.email}</p>
+  <div className="flex items-center gap-2 mt-2">
+    <Badge variant={formData.privacy ? "secondary" : "default"}>
+      {formData.privacy ? "Private" : "Public"}
+    </Badge>
+    <Badge variant="outline" className="flex items-center gap-1">
+      <GraduationCap className="w-3 h-3" />
+      Student
+    </Badge>
+  </div>
+</div>
+
             <Button variant="outline" size="sm" className="flex items-center gap-2">
               <Camera className="w-4 h-4" />
               Change Photo
