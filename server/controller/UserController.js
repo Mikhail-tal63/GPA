@@ -8,9 +8,9 @@ import generateTokenAndSetCookie from "../generate/generateJwtAndSetToken.js";
 export const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
-      .select("-password") 
+      .select("-password")
       .lean()
-        //////////////
+    //////////////
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -31,7 +31,7 @@ export const searchUsers = async (req, res) => {
     $or: [{ name: regex }, { email: regex }]
   }).select("name email avatarUrl privacy status gpa semesters");
 
- 
+
   const result = users.map(u => ({
     id: u._id,
     name: u.name,
@@ -49,7 +49,7 @@ export const searchUsers = async (req, res) => {
 
 export const getMe = async (req, res) => {
   try {
-  
+
     const user = await User.findById(req.user.id).select("-password");
 
     if (!user) {
@@ -65,28 +65,42 @@ export const getMe = async (req, res) => {
 
 
 export const updateProfile = async (req, res) => {
-  const user = await User.findById(req.user._id);
+  try {
+    const user = await User.findById(req.user._id);
 
-  if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-  const { name, status, privacy, password } = req.body;
+    const { name, status, privacy, newPassword, avatarUrl, avatarPath, iconUrl, iconPath } = req.body;
 
-  if (name) user.name = name;
-  if (status) user.status = status;
-  if (privacy !== undefined) user.privacy = privacy;
-  if (password) user.password = password;
+    if (name !== undefined) user.name = name;
+    if (status !== undefined) user.status = status;
+    if (privacy !== undefined) user.privacy = privacy;
 
-  await user.save();
-  res.json({
-    message: "Profile updated",
-    user: {
-      name: user.name,
-      email: user.email,
-      status: user.status,
-      privacy: user.privacy,
-      avatarUrl: user.avatarUrl
-    },
-  });
+    // تحديث الباسورد لو مرسل من الفرونت
+    if (newPassword && newPassword.trim() !== "") {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(newPassword, salt);
+    }
+
+    // تحديث الصور
+    if (avatarUrl) user.avatarUrl = avatarUrl;
+    if (avatarPath) user.avatarPath = avatarPath;
+    if (iconUrl) user.iconUrl = iconUrl;
+    if (iconPath) user.iconPath = iconPath;
+
+    await user.save();
+
+    // رجّع بيانات المستخدم بدون الباسورد
+    const { password, ...userData } = user._doc || user.toObject();
+
+    res.json({
+      message: "Profile updated",
+      user: userData,
+    });
+  } catch (error) {
+    console.error("updateProfile error:", error.message);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
 export const signupUser = async (req, res) => {
@@ -102,7 +116,7 @@ export const signupUser = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
- 
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -142,7 +156,7 @@ export const loginUser = async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: "Invalid credentialss" });
     }
-   
+
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password || "");
     console.log("Comparing passwords:", password, user.password);
