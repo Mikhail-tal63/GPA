@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import axios from 'axios';
 
 interface User {
   id: string;
@@ -41,23 +42,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
-    // Simulate API delay
-    await new Promise((res) => setTimeout(res, 500));
+const login = async (email: string, password: string) => {
+  try {
+    const res = await axios.post(
+      "http://localhost:4000/api/auth/login",
+      { email, password },
+      { withCredentials: true } // لو الكوكيز تستخدم للتحقق من الجلسة
+    );
 
-    // Mock users
-    const mockUsers: User[] = [
-      { id: '1', name: 'Ahmed Ali', email: 'ahmed.ali@university.edu', privacy: false, status: 'Studying for finals' },
-      { id: '2', name: 'Sara Mohammed', email: 'sara.mohammed@university.edu', privacy: true, status: 'Computer Science major' },
-    ];
+    const userData = res.data.user; // تأكد من اسم الـ user في response
+    setUser(userData);
 
-    const foundUser = mockUsers.find(u => u.email === email);
-    if (!foundUser) throw new Error('Invalid credentials');
+    // إذا تحب تخزن توكن
+    localStorage.setItem("authToken", res.data.token);
+    localStorage.setItem("userData", JSON.stringify(userData));
+  } catch (err: any) {
+    throw new Error(err.response?.data?.message || "Login failed");
+  }
+};
 
-    localStorage.setItem('authToken', 'mock-token');
-    localStorage.setItem('userData', JSON.stringify(foundUser));
-    setUser(foundUser);
-  };
 
   const register = async (name: string, email: string, password: string) => {
     await new Promise((res) => setTimeout(res, 500));

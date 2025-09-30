@@ -10,10 +10,6 @@ const userSchema = new mongoose.Schema({
   avatarUrl: { type: String },
   privacy: { type: Boolean, default: false },
   status: { type: String, default: "" },
-<<<<<<< HEAD
-  gpa: { type: Number, default: null }, 
-=======
->>>>>>> 7f6f1997bded510172cb16b62cbe70ee96adca65
   semesters: [
     { type: mongoose.Schema.Types.ObjectId, ref: "Semester" }
   ]
