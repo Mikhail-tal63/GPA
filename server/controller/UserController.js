@@ -8,7 +8,7 @@ import generateTokenAndSetCookie from "../generate/generateJwtAndSetToken.js";
 export const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
-      .select("-password") // منع إرسال الباسورد
+      .select("-password") 
       .lean()
         //////////////
 
@@ -49,7 +49,7 @@ export const searchUsers = async (req, res) => {
 
 export const getMe = async (req, res) => {
   try {
-    // middleware لازم يكون ضايف req.user
+  
     const user = await User.findById(req.user.id).select("-password");
 
     if (!user) {
@@ -74,7 +74,7 @@ export const updateProfile = async (req, res) => {
   if (name) user.name = name;
   if (status) user.status = status;
   if (privacy !== undefined) user.privacy = privacy;
-  if (password) user.password = password; // تأكد تعمل hash قبل الحفظ
+  if (password) user.password = password;
 
   await user.save();
   res.json({
@@ -102,18 +102,18 @@ export const signupUser = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Hash password
+ 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
+
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
     });
 
-    // Generate JWT + set cookie
+
     generateTokenAndSetCookie(user._id, res);
 
     res.status(201).json({
