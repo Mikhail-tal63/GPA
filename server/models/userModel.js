@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
   avatarUrl: { type: String },
   privacy: { type: Boolean, default: false },
   status: { type: String, default: "" },
-   semesters: [
+  semesters: [
     { type: mongoose.Schema.Types.ObjectId, ref: "Semester" }
   ]
 }, { timestamps: true });
