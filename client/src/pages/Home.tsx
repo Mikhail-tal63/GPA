@@ -10,7 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
 
-import { calculatePercentage, Course } from "@/utils/gpa";
+import { Course } from "@/utils/gpa";
 
 interface Semester {
   id: string;
@@ -26,88 +26,85 @@ export const Home: React.FC = () => {
 
   const [semesters, setSemesters] = useState<Semester[]>([]);
 
- useEffect(() => {
-  const fetchsemester = async () => {
+  useEffect(() => {
+    const fetchsemester = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:4000/api/semesters/getSemesters",
+          { withCredentials: true }
+        );
+        setSemesters(res.data.semesters || []);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load semesters",
+        });
+      }
+    };
+    fetchsemester();
+  }, []);
+
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const handleCreateSemester = async (semesterData: {
+    name: string;
+    courses: Course[];
+  }) => {
     try {
-      const res = await axios.get(
-        "http://localhost:4000/api/semesters/getSemesters",
+      const res = await axios.post(
+        "http://localhost:4000/api/semesters/create",
+        semesterData,
         { withCredentials: true }
       );
 
+      // Map returned semesters
       const mappedSemesters = (res.data.semesters || []).map((s: any) => ({
         ...s,
-        id: s._id, // نضمن عندنا دايمًا id
+        id: s._id,
         gpa: s.gpa ?? 0,
       }));
 
       setSemesters(mappedSemesters);
-    } catch (error) {
+
+      // هذا السطر يختفي الفورم بعد الإنشاء
+      setShowCreateForm(false);
+
+      toast({
+        title: t("semesterCreated"),
+        description: `${semesterData.name} has been added successfully.`,
+      });
+    } catch (err) {
+      console.error(err);
       toast({
         title: "Error",
-        description: "Failed to load semesters",
+        description: "Failed to create semester",
       });
     }
   };
-  fetchsemester();
-}, []);
-
-
-  const [showCreateForm, setShowCreateForm] = useState(false);
-const handleCreateSemester = async (semesterData: { name: string; courses: Course[] }) => {
-  try {
-    const res = await axios.post(
-      "http://localhost:4000/api/semesters/create",
-      semesterData,
-      { withCredentials: true }
-    );
-
-    // Map returned semesters
-    const mappedSemesters = (res.data.semesters || []).map((s: any) => ({
-      ...s,
-      id: s._id,
-      gpa: s.gpa ?? 0,
-    }));
-
-    setSemesters(mappedSemesters);
-
-    // هذا السطر يختفي الفورم بعد الإنشاء
-    setShowCreateForm(false);
-
-    toast({
-      title: t("semesterCreated"),
-      description: `${semesterData.name} has been added successfully.`,
-    });
-  } catch (err) {
-    console.error(err);
-    toast({
-      title: "Error",
-      description: "Failed to create semester",
-    });
-  }
-};
-
 
   const handleDeleteSemester = async (semesterId: string) => {
-  try {
-    await axios.delete(`http://localhost:4000/api/semesters/delete/${semesterId}`, {
-      withCredentials: true,
-    });
+    try {
+      await axios.delete(
+        `http://localhost:4000/api/semesters/delete/${semesterId}`,
+        {
+          withCredentials: true,
+        }
+      );
 
-    // استخدم id مو _id
-    setSemesters(semesters.filter((s) => s.id !== semesterId));
+      // استخدم id مو _id
+      setSemesters(semesters.filter((s) => s.id !== semesterId));
 
-    toast({
-      title: "Semester deleted",
-      description: "The semester has been removed successfully.",
-    });
-  } catch (err) {
-    console.error(err);
-    toast({
-      title: "Error",
-      description: "Failed to delete semester",
-    });
-  }
-};
+      toast({
+        title: "Semester deleted",
+        description: "The semester has been removed successfully.",
+      });
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Error",
+        description: "Failed to delete semester",
+      });
+    }
+  };
 
   //  const cumulativeGPA = calculateCumulativeGPA(semesters);
 

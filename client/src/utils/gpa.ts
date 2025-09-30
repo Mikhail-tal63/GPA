@@ -1,7 +1,7 @@
 export interface Course {
   name: string;
   code: string;
-  grade: number;   // درجة من 0 إلى 100
+  grade: number; // درجة من 0 إلى 100
   credits?: number;
 }
 
