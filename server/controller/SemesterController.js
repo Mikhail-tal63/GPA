@@ -19,7 +19,7 @@ export const createSemester = async (req, res) => {
     const { name, courses } = req.body;
     const userId = req.user.id || req.user._id;
 
-    // إنشاء السيمستر
+
     const semester = new Semester({
       user: userId,
       name,
@@ -27,13 +27,13 @@ export const createSemester = async (req, res) => {
     });
     await semester.save();
 
-    // ربط السيمستر بالمستخدم
+ 
     await User.findByIdAndUpdate(userId, { $push: { semesters: semester._id } });
 
-    // جلب جميع السيمسترات بعد الإضافة
+  
     const semesters = await Semester.find({ user: userId }).lean();
 
-    // إرجاع كل السيمسترات للفرونت اند
+  
     res.status(201).json({ semesters });
   } catch (err) {
     console.error("Create semester error:", err);
@@ -44,7 +44,7 @@ export const createSemester = async (req, res) => {
 
 export const deleteSemester = async (req, res) => {
   try {
-    const { id } = req.params;  // تأكد إنه هذا موجود
+    const { id } = req.params;  
     if (!id) return res.status(400).json({ message: "Semester ID is required" });
 
     const semester = await Semester.findByIdAndDelete(id);
@@ -56,3 +56,66 @@ export const deleteSemester = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ /*<div className="flex-1">
+              <h2 className="text-xl font-semibold">{formData.name}</h2>
+              <p className="text-sm text-muted-foreground">{user?.email}</p>
+              <div className="flex items-center gap-2 mt-2">
+                <Badge variant={formData.privacy ? 'secondary' : 'default'}>
+                  {formData.privacy ? 'Private' : 'Public'}
+                </Badge>
+                <Badge variant="outline" className="flex items-center gap-1">
+                  <GraduationCap className="w-3 h-3" />
+                  Student
+                </Badge>
+              </div>
+            </div>*/
