@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { User, Lock, GraduationCap, MessageCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { StatusIndicator } from '@/components/ui/status-indicator';
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { User, Lock, GraduationCap, MessageCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { StatusIndicator } from "@/components/ui/status-indicator";
 
 interface Course {
   name: string;
@@ -40,29 +40,28 @@ export const UserProfile: React.FC = () => {
     }
   }, [userId]);
 
-const loadUserProfile = async (id: string) => {
-  try {
-    setIsLoading(true);
-    const res = await fetch(`http://localhost:4000/api/users/${id}`, {
-      method: "GET",
-      credentials: "include", 
-      headers: { "Content-Type": "application/json" }
-    });
+  const loadUserProfile = async (id: string) => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(`http://localhost:4000/api/users/${id}`, {
+        method: "GET",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
 
-    if (!res.ok) {
-      throw new Error("Failed to fetch profile");
+      if (!res.ok) {
+        throw new Error("Failed to fetch profile");
+      }
+
+      const data = await res.json();
+      setProfile(data.user);
+    } catch (err) {
+      console.error("Error loading profile:", err);
+      setProfile(null);
+    } finally {
+      setIsLoading(false);
     }
-
-    const data = await res.json();
-    setProfile(data.user);
-  } catch (err) {
-    console.error("Error loading profile:", err);
-    setProfile(null);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
+  };
 
   if (isLoading) {
     return (
@@ -94,19 +93,27 @@ const loadUserProfile = async (id: string) => {
         <CardContent className="pt-6 flex items-center gap-6">
           <div className="relative">
             {profile.avatarUrl ? (
-              <img src={profile.avatarUrl} alt={profile.name} className="w-20 h-20 rounded-full object-cover" />
+              <img
+                src={profile.avatarUrl}
+                alt={profile.name}
+                className="w-20 h-20 rounded-full object-cover"
+              />
             ) : (
               <div className="w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center">
                 <User className="w-10 h-10 text-white" />
               </div>
             )}
-            <StatusIndicator status="online" size="lg" className="absolute -bottom-1 -right-1 border-2 border-background" />
+            <StatusIndicator
+              status="online"
+              size="lg"
+              className="absolute -bottom-1 -right-1 border-2 border-background"
+            />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <h1 className="text-2xl font-bold">{profile.name}</h1>
-              <Badge variant={profile.privacy ? 'secondary' : 'default'}>
-                {profile.privacy ? 'Private' : 'Public'}
+              <Badge variant={profile.privacy ? "secondary" : "default"}>
+                {profile.privacy ? "Private" : "Public"}
               </Badge>
             </div>
             <p className="text-muted-foreground mb-2">{profile.email}</p>
@@ -124,7 +131,9 @@ const loadUserProfile = async (id: string) => {
           <CardContent>
             <Lock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">Private Account</h3>
-            <p className="text-muted-foreground">This user has chosen to keep their academic info private.</p>
+            <p className="text-muted-foreground">
+              This user has chosen to keep their academic info private.
+            </p>
           </CardContent>
         </Card>
       ) : (
@@ -132,20 +141,27 @@ const loadUserProfile = async (id: string) => {
           <div className="grid gap-4 md:grid-cols-3">
             <Card className="card-hover text-center">
               <CardContent className="pt-6">
-                <div className="text-3xl font-bold text-primary mb-2">{profile.gpa?.toFixed(2)}</div>
+                <div className="text-3xl font-bold text-primary mb-2">
+                  {profile?.gpa?.toFixed(2)}
+                </div>
                 <p className="text-sm text-muted-foreground">Cumulative GPA</p>
               </CardContent>
             </Card>
             <Card className="card-hover text-center">
               <CardContent className="pt-6">
-                <div className="text-3xl font-bold text-accent mb-2">{profile.semesters?.length || 0}</div>
+                <div className="text-3xl font-bold text-accent mb-2">
+                  {profile.semesters?.length || 0}
+                </div>
                 <p className="text-sm text-muted-foreground">Semesters</p>
               </CardContent>
             </Card>
             <Card className="card-hover text-center">
               <CardContent className="pt-6">
                 <div className="text-3xl font-bold text-success mb-2">
-                  {profile.semesters?.reduce((acc, sem) => acc + sem.courses.length, 0) || 0}
+                  {profile.semesters?.reduce(
+                    (acc, sem) => acc + sem.courses.length,
+                    0
+                  ) || 0}
                 </div>
                 <p className="text-sm text-muted-foreground">Courses</p>
               </CardContent>
@@ -153,7 +169,7 @@ const loadUserProfile = async (id: string) => {
           </div>
 
           {/* Semesters */}
-          {profile.semesters?.map(sem => (
+          {profile.semesters?.map((sem) => (
             <Card key={sem.id} className="card-hover">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -163,7 +179,9 @@ const loadUserProfile = async (id: string) => {
                     </div>
                     <div>
                       <h3 className="font-semibold">{sem.name}</h3>
-                      <p className="text-sm text-muted-foreground">{sem.courses.length} courses</p>
+                      <p className="text-sm text-muted-foreground">
+                        {sem.courses.length} courses
+                      </p>
                     </div>
                   </div>
                   <Badge>{sem.gpa.toFixed(2)}</Badge>
@@ -172,10 +190,15 @@ const loadUserProfile = async (id: string) => {
               <CardContent>
                 <div className="space-y-2">
                   {sem.courses.map((course, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-2 bg-muted/30 rounded">
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-2 bg-muted/30 rounded"
+                    >
                       <div>
                         <span className="font-medium">{course.name}</span>
-                        <span className="text-sm text-muted-foreground ml-2">({course.code})</span>
+                        <span className="text-sm text-muted-foreground ml-2">
+                          ({course.code})
+                        </span>
                       </div>
                       <Badge variant="outline">{course.grade.toFixed(1)}</Badge>
                     </div>
