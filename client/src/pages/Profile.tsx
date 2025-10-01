@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { StatusIndicator } from "@/components/ui/status-indicator";
-import { createClient } from "@supabase/supabase-js";
+import { useEffect } from "react";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 
