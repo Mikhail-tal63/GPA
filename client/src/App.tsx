@@ -3,7 +3,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+
+import { RecoilRoot, useRecoilValue } from "recoil";
+import userAtom from "./Aouth/UserAtom";
+
 import { Layout } from "./components/layout/Layout";
 import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
@@ -11,102 +14,64 @@ import { Signup } from "./pages/Signup";
 import { Profile } from "./pages/Profile";
 import { Search } from "./pages/Search";
 import { Tips } from "./pages/Tips";
-import NotFound from "./pages/NotFound";
-import "./lib/i18n";
 import { UserProfile } from "./pages/UserProfile";
+import NotFound from "./pages/NotFound";
+
+import "./lib/i18n";
+
 const queryClient = new QueryClient();
 
-// Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
-  
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-  
+  const user = useRecoilValue(userAtom);
 
-  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   return <>{children}</>;
 };
 
-// Public Route Component (redirect to home if authenticated)
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
-  
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-  
+  const user = useRecoilValue(userAtom);
+
   if (user) {
     return <Navigate to="/" replace />;
   }
-  
+
   return <>{children}</>;
 };
 
+const AppRoutes = () => (
+  <Routes>
+    {/* Public Routes */}
+    <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+    <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+
+    {/* Protected Routes */}
+    <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+      <Route index element={<Home />} />
+      <Route path="search" element={<Search />} />
+      <Route path="tips" element={<Tips />} />
+      <Route path="account" element={<Profile />} />
+      <Route path="users/:userId" element={<UserProfile />} />
+    </Route>
+
+    {/* Catch-all */}
+    <Route path="*" element={<NotFound />} />
+  </Routes>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
+    <RecoilRoot>
       <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            {/* Public Routes */}
-            <Route 
-              path="/login" 
-              element={
-                <PublicRoute>
-                  <Login />
-                </PublicRoute>
-              } 
-            />
-            <Route 
-              path="/signup" 
-              element={
-                <PublicRoute>
-                  <Signup />
-                </PublicRoute>
-              } 
-            />
-            
-            {/* Protected Routes with Layout */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Home />} />
-              <Route path="search" element={<Search />} />
-              <Route path="tips" element={<Tips />} />
-              <Route path="account" element={<Profile />} />
-                <Route path="users/:userId" element={<UserProfile />} />
-            </Route>
-            
-            {/* Catch-all route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AppRoutes />
         </BrowserRouter>
       </TooltipProvider>
-    </AuthProvider>
+    </RecoilRoot>
   </QueryClientProvider>
 );
 

@@ -1,3 +1,4 @@
+import { LogOut } from "lucide-react"; 
 import React, { useState, useEffect, useRef } from "react";
 import {
   User,
@@ -16,26 +17,23 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { StatusIndicator } from "@/components/ui/status-indicator";
-import { useEffect } from "react";
+import { supabase } from "../config/supabase.config.js";
+
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 
-export const Profile: React.FC = () => {
-  interface UserType {
-    id: string;
-    name: string;
-    email: string;
-    avatarUrl?: string;
-    avatarPath?: string;
-    iconUrl?: string;
-    iconPath?: string;
-    status?: string;
-    privacy: boolean;
-  }
+// 🟢 استيراد Recoil
+import { useRecoilState } from "recoil";
+import userAtom from "../Aouth/UserAtom.js";
 
+
+export const Profile: React.FC = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState<UserType | null>(null);
+
+  // 🟢 بدل useState(user) → Recoil
+  const [user, setUser] = useRecoilState(userAtom);
+
   const [formData, setFormData] = useState({
     name: "",
     status: "Excited to learn!",
@@ -46,25 +44,26 @@ export const Profile: React.FC = () => {
   const avatarRef = useRef<HTMLInputElement | null>(null);
   const iconRef = useRef<HTMLInputElement | null>(null);
 
+  // 🟢 جلب اليوزر وحفظه في Recoil
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axios.get("http://localhost:4000/api/users/me", {
-          withCredentials: true,
-        });
-        setUser(res.data);
-        setFormData({
-          name: res.data.name,
-          status: res.data.status || "",
-          privacy: res.data.privacy,
-          newPassword: "",
-        });
-      } catch (err) {
-        toast({ title: "Failed to load profile", variant: "destructive" });
-      }
-    };
-    fetchUser();
-  }, []);
+  const fetchUser = async () => {
+    try {
+      const res = await axios.get("http://localhost:4000/api/users/me", {
+        withCredentials: true,
+      });
+      setUser(res.data); // ✅ خزّن البيانات في الـ atom
+      setFormData({
+        name: res.data.name,
+        status: res.data.status || "",
+        privacy: res.data.privacy,
+        newPassword: "",
+      });
+    } catch (err) {
+      toast({ title: "Failed to load profile", variant: "destructive" });
+    }
+  };
+  fetchUser();
+}, [setUser, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +74,7 @@ export const Profile: React.FC = () => {
         formData,
         { withCredentials: true }
       );
-      setUser(res.data);
+      setUser(res.data); // ✅ تحديث اليوزر في Recoil
       toast({ title: "Profile updated!" });
       setFormData({ ...formData, newPassword: "" });
     } catch (err: any) {
@@ -88,6 +87,29 @@ export const Profile: React.FC = () => {
     }
   };
 
+ const handleLogout = async () => {
+    try {
+      setIsLoading(true);
+      await axios.post(
+        "http://localhost:4000/api/users/logout",
+        {},
+        { withCredentials: true }
+      );
+      setUser(null); // إزالة اليوزر من Recoil
+      toast({ title: "Logged out successfully!" });
+      window.location.href = "/login"; // تحويل المستخدم لصفحة تسجيل الدخول
+    } catch (err: any) {
+      console.error(err);
+      toast({
+        title: err.response?.data?.message || "Failed to logout",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -99,13 +121,12 @@ export const Profile: React.FC = () => {
     setFormData({ ...formData, privacy: checked });
   };
 
-  // دالة عامة لإعادة استخدام الكود
+  // 🟢 إعادة استعمال uploadImage
   const uploadImage = async (file: File, pathToDelete?: string) => {
     try {
       if (pathToDelete) {
         await supabase.storage.from("Threads-clone").remove([pathToDelete]);
       }
-
       const fileName = `${Date.now()}-${file.name}`;
       const { data, error } = await supabase.storage
         .from("Threads-clone")
@@ -141,14 +162,13 @@ export const Profile: React.FC = () => {
     };
     setUser(updatedUser);
 
-    await axios.put(
-      "http://localhost:4000/api/users/update",
-      updatedUser,
-      { withCredentials: true } // ✅ هنا
-    );
+    await axios.put("http://localhost:4000/api/users/update", updatedUser, {
+      withCredentials: true,
+    });
 
     toast({ title: "Avatar updated!" });
   };
+
   const handleIconChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
@@ -165,16 +185,26 @@ export const Profile: React.FC = () => {
       iconPath: uploaded.path,
     };
     setUser(updatedUser);
-    await axios.put(
-      "http://localhost:4000/api/users/updateprofile",
-      updatedUser
-    );
+
+    await axios.put("http://localhost:4000/api/users/updateprofile", updatedUser);
+
     toast({ title: "Icon updated!" });
   };
-
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Profile Header */}
+         <div className="flex justify-end">
+        <Button
+          variant="destructive"
+          size="sm"
+          className="flex items-center gap-2"
+          onClick={handleLogout}
+          disabled={isLoading}
+        >
+          <LogOut className="w-4 h-4" />
+          Logout
+        </Button>
+      </div>
       <Card className="card-hover">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

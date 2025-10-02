@@ -4,24 +4,47 @@ import bcrypt from "bcryptjs";
 import generateTokenAndSetCookie from "../generate/generateJwtAndSetToken.js";
 
 
-
 export const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
       .select("-password")
-      .lean()
-    //////////////
+      .populate({
+        path: "semesters",
+        options: { sort: { createdAt: -1 } } // اختياري، ترتيب من الأحدث
+      })
+      .lean();
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json({ user });
+    // تحويل _id إلى id لكل semester
+    const mappedSemesters = (user.semesters || []).map((s) => ({
+      ...s,
+      id: s._id,
+      gpa: s.gpa ?? 0
+    }));
+
+    // حسب الـ cumulative GPA لو تحب
+    const cumulativeGPA =
+      mappedSemesters.reduce((acc, s) => acc + (s.gpa || 0), 0) /
+      (mappedSemesters.length || 1);
+
+    res.json({
+      user: {
+        ...user,
+        semesters: mappedSemesters,
+        gpa: cumulativeGPA
+      }
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+
 export const searchUsers = async (req, res) => {
   const query = req.query.q || "";
   if (!query.trim()) return res.json([]);

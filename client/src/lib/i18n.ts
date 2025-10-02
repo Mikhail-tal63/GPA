@@ -5,6 +5,25 @@ import LanguageDetector from 'i18next-browser-languagedetector/cjs';
 const resources = {
   en: {
     translation: {
+
+// Navigation / Headers
+yourSemesters: "Your Semesters",
+profileSettings: "Profile Settings",
+
+// Profile / Account
+changeIcon: "Change Icon",
+changePhoto: "Change Photo",
+privacySettings: "Privacy Settings",
+otherUsersCanView: "Other users can view your academic progress",
+
+// Search / Connect
+connectWithStudents: "Connect with other students and view their academic progress",
+findStudents: "Find Students",
+startSearching: "Start searching",
+enterStudentNameOrEmail: "Enter a student's name or email to find their profile",
+
+
+      
       // Navigation
       home: "Home",
       search: "Search",
@@ -72,6 +91,29 @@ const resources = {
   },
   ar: {
     translation: {
+
+
+
+// Navigation / Headers
+yourSemesters: "فصولك الدراسية",
+profileSettings: "إعدادات الملف الشخصي",
+
+// Profile / Account
+changeIcon: "تغيير الأيقونة",
+changePhoto: "تغيير الصورة",
+privacySettings: "إعدادات الخصوصية",
+otherUsersCanView: "يمكن للمستخدمين الآخرين عرض تقدمك الأكاديمي",
+
+// Search / Connect
+connectWithStudents: "تواصل مع طلاب آخرين وعرض تقدمهم الأكاديمي",
+findStudents: "ابحث عن الطلاب",
+startSearching: "ابدأ البحث",
+enterStudentNameOrEmail: "أدخل اسم الطالب أو بريده الإلكتروني للعثور على ملفه الشخصي",
+
+
+
+
+
       // Navigation
       home: "الرئيسية",
       search: "البحث",

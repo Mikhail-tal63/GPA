@@ -9,8 +9,10 @@ import { CreateSemesterForm } from "@/components/semester/CreateSemesterForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
-
+import { useRecoilValue } from 'recoil';
+import userAtom from '../Aouth/UserAtom';
 import { Course } from "@/utils/gpa";
+import { calculateCumulativePercentage } from "../utils/gpa";
 
 interface Semester {
   id: string;
@@ -21,28 +23,36 @@ interface Semester {
 
 export const Home: React.FC = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const user = useRecoilValue(userAtom);
   const { toast } = useToast();
 
   const [semesters, setSemesters] = useState<Semester[]>([]);
 
-  useEffect(() => {
-    const fetchsemester = async () => {
-      try {
-        const res = await axios.get(
-          "http://localhost:4000/api/semesters/getSemesters",
-          { withCredentials: true }
-        );
-        setSemesters(res.data.semesters || []);
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to load semesters",
-        });
-      }
-    };
-    fetchsemester();
-  }, []);
+ useEffect(() => {
+  const fetchsemester = async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:4000/api/semesters/getSemesters",
+        { withCredentials: true }
+      );
+
+      // تحويل _id إلى id
+      const mappedSemesters = (res.data.semesters || []).map((s: any) => ({
+        ...s,
+        id: s._id,
+        gpa: s.gpa ?? 0,
+      }));
+
+      setSemesters(mappedSemesters);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load semesters",
+      });
+    }
+  };
+  fetchsemester();
+}, []);
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const handleCreateSemester = async (semesterData: {
@@ -105,7 +115,10 @@ export const Home: React.FC = () => {
       });
     }
   };
-
+const cumulativeGPA = calculateCumulativePercentage(semesters.map(sem => ({
+  courses: sem.courses,
+  percentage: sem.gpa // ممكن يكون optional، لكن هنا ما يحتاج إلا الكورسات
+})));
   //  const cumulativeGPA = calculateCumulativeGPA(semesters);
 
   return (
@@ -119,12 +132,14 @@ export const Home: React.FC = () => {
               {t("cumulativeGPA")}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">test</div>
-            <p className="text-xs text-muted-foreground">
-              Based on {semesters?.length} semesters
-            </p>
-          </CardContent>
+       <CardContent>
+  <div className="text-2xl font-bold text-primary">
+    {cumulativeGPA.toFixed(2)}
+  </div>
+  <p className="text-xs text-muted-foreground">
+    Based on {semesters?.length} semesters
+  </p>
+</CardContent>
         </Card>
 
         <Card className="card-hover">

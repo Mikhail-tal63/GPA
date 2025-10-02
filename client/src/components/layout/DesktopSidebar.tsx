@@ -4,37 +4,28 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Search, BookOpen, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { useAuth } from '@/contexts/AuthContext';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import userAtom from '@/Aouth/UserAtom'; // عدّل المسار حسب مشروعك
 import { cn } from '@/lib/utils';
 
 export const DesktopSidebar: React.FC = () => {
   const { t } = useTranslation();
-  const { user, logout } = useAuth();
+  const user = useRecoilValue(userAtom); // ✅ بدل useAuth
+  const setUser = useSetRecoilState(userAtom); // لاستخدام logout
   const location = useLocation();
 
   const navItems = [
-    {
-      to: '/',
-      icon: Home,
-      label: t('home'),
-    },
-    {
-      to: '/search',
-      icon: Search,
-      label: t('search'),
-    },
-    {
-      to: '/tips',
-      icon: BookOpen,
-      label: t('tips'),
-    },
-    {
-      to: '/account',
-      icon: User,
-      label: t('account'),
-    },
+    { to: '/', icon: Home, label: t('home') },
+    { to: '/search', icon: Search, label: t('search') },
+    { to: '/tips', icon: BookOpen, label: t('tips') },
+    { to: '/account', icon: User, label: t('account') },
   ];
 
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('userData');
+    localStorage.removeItem('authToken');
+  };
   return (
     <aside className="w-64 bg-card border-r shadow-custom-sm h-screen sticky top-0">
       <div className="flex flex-col h-full">

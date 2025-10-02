@@ -7,11 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { useSetRecoilState } from 'recoil';
+import userAtom from '@/Aouth/UserAtom';
 
 export const Signup: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const setUser = useSetRecoilState(userAtom);
+
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -39,9 +43,7 @@ export const Signup: React.FC = () => {
     try {
       const res = await fetch("http://localhost:4000/api/users/signup", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include", 
         body: JSON.stringify({
           name: formData.name,
@@ -56,13 +58,17 @@ export const Signup: React.FC = () => {
         throw new Error(data?.message || "Failed to register");
       }
 
+      // تحديث Recoil state مباشرة بعد التسجيل
+      setUser(data.user);
+
       toast({
         title: 'Welcome to GPA Manager!',
         description: data.message || 'Your account has been created successfully.',
       });
 
-      navigate("/");
-    } catch (error) {
+      // redirect تلقائي على الهوم
+      navigate("/", { replace: true });
+    } catch (error: any) {
       toast({
         title: 'Registration failed',
         description: error.message || 'Please check your information and try again.',
@@ -74,10 +80,7 @@ export const Signup: React.FC = () => {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   return (

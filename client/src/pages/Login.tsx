@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { LogIn, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,16 +7,25 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
+import { useRecoilState } from "recoil";
+import userAtom from "../Aouth/UserAtom.js";
 
 export const Login: React.FC = () => {
+  const navigate = useNavigate();
+  const [user, setUser] = useRecoilState(userAtom);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // 👇 form state محلي
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  console.log("Sending login data:", formData);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,32 +35,26 @@ export const Login: React.FC = () => {
       const res = await axios.post(
         "http://localhost:4000/api/users/login",
         formData,
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
-      console.log(res.data);
 
+      setUser(res.data.user); // ✅ خزّن بيانات اليوزر في Recoil
       toast({
         title: "Success",
-        description: `Welcome back ${res.data.user.name || formData.email}!`,
+        description: `Welcome back ${res.data.user.name || res.data.user.email}!`,
       });
-    } catch (err) {
+
+      navigate("/"); // ⬅️ Redirect للهوم بعد تسجيل الدخول
+    } catch (err: any) {
       console.error(err.response?.data || err);
       toast({
         title: "Login Failed",
         description: err.response?.data?.message || "Something went wrong",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
   };
 
   return (

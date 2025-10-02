@@ -4,13 +4,14 @@ import { Search, Globe, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/contexts/AuthContext';
+import { useRecoilValue } from 'recoil';
+import userAtom from '@/Aouth/UserAtom'; // تأكد من المسار
 import { StatusIndicator } from '@/components/ui/status-indicator';
 import { useNavigate } from 'react-router-dom';
 
 export const Header: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const { user } = useAuth();
+  const user = useRecoilValue(userAtom); // ✅ بدل useAuth
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -29,17 +30,15 @@ export const Header: React.FC = () => {
   return (
     <header className="border-b bg-card shadow-custom-sm">
       <div className="flex items-center justify-between px-4 py-3">
-        {/* Logo/Title */}
+        {/* Logo */}
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">GPA</span>
           </div>
-          <h1 className="text-lg font-semibold text-foreground">
-            {t('welcome')}
-          </h1>
+          <h1 className="text-lg font-semibold text-foreground">{t('welcome')}</h1>
         </div>
 
-        {/* Search Bar (Desktop) */}
+        {/* Desktop Search */}
         <div className="hidden md:flex flex-1 max-w-md mx-8">
           <form onSubmit={handleSearch} className="flex w-full gap-2">
             <div className="relative flex-1">
@@ -55,29 +54,18 @@ export const Header: React.FC = () => {
           </form>
         </div>
 
-        {/* User Info & Actions */}
+        {/* User Info */}
         <div className="flex items-center gap-3">
-          {/* Language Toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleLanguage}
-            className="flex items-center gap-2"
-          >
+          <Button variant="ghost" size="sm" onClick={toggleLanguage} className="flex items-center gap-2">
             <Globe className="w-4 h-4" />
             <span className="text-sm">{i18n.language.toUpperCase()}</span>
           </Button>
 
-          {/* User Profile */}
           {user && (
             <div className="flex items-center gap-2">
               <div className="relative">
                 {user.avatarUrl ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.name}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
+                  <img src={user.avatarUrl} alt={user.name} className="w-8 h-8 rounded-full object-cover" />
                 ) : (
                   <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-muted-foreground" />
