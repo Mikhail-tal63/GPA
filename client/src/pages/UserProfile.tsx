@@ -4,8 +4,6 @@ import { User, Lock, GraduationCap, MessageCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StatusIndicator } from "@/components/ui/status-indicator";
-
-// ✅ use the same utils you use elsewhere
 import { calculateGPA, calculateCumulativePercentage } from "@/utils/gpa";
 
 interface Course {
@@ -27,10 +25,11 @@ interface UserProfileShape {
   name: string;
   email: string;
   avatarUrl?: string;
+  iconUrl?: string; // ✅ أضفنا الأيقونة هنا
   privacy: boolean;
   status: string;
-  gpa?: number; // we'll recompute this
-  semesters?: Semester[]; // we'll normalize + add gpa per semester
+  gpa?: number;
+  semesters?: Semester[];
 }
 
 export const UserProfile: React.FC = () => {
@@ -38,7 +37,6 @@ export const UserProfile: React.FC = () => {
   const [profile, setProfile] = useState<UserProfileShape | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // formatting helpers
   const fmt2 = (n: unknown) =>
     Number.isFinite(n as number) ? (n as number).toFixed(2) : "0.00";
 
@@ -57,11 +55,9 @@ export const UserProfile: React.FC = () => {
       if (!res.ok) throw new Error("Failed to fetch profile");
       const data = await res.json();
 
-      // ---- normalize + compute GPAs here ----
       const u = data?.user ?? {};
       const rawSemesters: any[] = Array.isArray(u.semesters) ? u.semesters : [];
 
-      // ensure each semester has courses array and computed GPA
       const semesters: Semester[] = rawSemesters.map((s, idx) => {
         const courses: Course[] = Array.isArray(s?.courses) ? s.courses : [];
         const perSemesterGpa = calculateGPA(courses || []);
@@ -73,7 +69,6 @@ export const UserProfile: React.FC = () => {
         };
       });
 
-      // cumulative from all semester courses (credit-weighted inside util)
       const cumulativeGPA = calculateCumulativePercentage(
         semesters.map((s) => ({
           courses: s.courses,
@@ -86,6 +81,7 @@ export const UserProfile: React.FC = () => {
         name: u.name ?? "Unknown",
         email: u.email ?? "",
         avatarUrl: u.avatarUrl,
+        iconUrl: u.iconUrl, // ✅ هنا نمررها
         privacy: Boolean(u.privacy),
         status: u.status ?? "",
         gpa: cumulativeGPA,
@@ -156,7 +152,22 @@ export const UserProfile: React.FC = () => {
           </div>
           <div className="flex-1 text-center md:text-left">
             <div className="flex flex-col md:flex-row md:items-center md:gap-4 mb-2">
-              <h1 className="text-3xl font-bold">{profile.name}</h1>
+              {/* 🟢 هنا الإضافة: عرض الأيقونة بجانب الاسم */}
+              <div className="flex items-center gap-2">
+                <h1 className="text-3xl font-bold">{profile.name}</h1>
+                {profile.iconUrl ? (
+                  <img
+                    src={profile.iconUrl}
+                    alt="icon"
+                    className="w-7 h-7 rounded-full object-cover border border-muted-foreground"
+                  />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs">
+                    🧩
+                  </div>
+                )}
+              </div>
+
               <Badge
                 variant={profile.privacy ? "secondary" : "default"}
                 className="mt-2 md:mt-0"

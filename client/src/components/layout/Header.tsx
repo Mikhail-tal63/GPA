@@ -1,22 +1,22 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Search, Globe, User } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useRecoilValue } from 'recoil';
-import userAtom from '@/Aouth/UserAtom'; // تأكد من المسار
-import { StatusIndicator } from '@/components/ui/status-indicator';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Search, Globe, User } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useRecoilValue } from "recoil";
+import userAtom from "@/Aouth/UserAtom";
+import { StatusIndicator } from "@/components/ui/status-indicator";
+import { useNavigate } from "react-router-dom";
 
 export const Header: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const user = useRecoilValue(userAtom); // ✅ بدل useAuth
+  const user = useRecoilValue(userAtom);
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   const toggleLanguage = () => {
-    const newLang = i18n.language === 'en' ? 'ar' : 'en';
+    const newLang = i18n.language === "en" ? "ar" : "en";
     i18n.changeLanguage(newLang);
   };
 
@@ -35,7 +35,9 @@ export const Header: React.FC = () => {
           <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">GPA</span>
           </div>
-          <h1 className="text-lg font-semibold text-foreground">{t('welcome')}</h1>
+          <h1 className="text-lg font-semibold text-foreground">
+            {t("welcome")}
+          </h1>
         </div>
 
         {/* Desktop Search */}
@@ -45,7 +47,7 @@ export const Header: React.FC = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
                 type="text"
-                placeholder={t('searchUsers')}
+                placeholder={t("searchUsers")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -56,7 +58,13 @@ export const Header: React.FC = () => {
 
         {/* User Info */}
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={toggleLanguage} className="flex items-center gap-2">
+          {/* 🌍 Language toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleLanguage}
+            className="flex items-center gap-2"
+          >
             <Globe className="w-4 h-4" />
             <span className="text-sm">{i18n.language.toUpperCase()}</span>
           </Button>
@@ -64,26 +72,50 @@ export const Header: React.FC = () => {
           {user && (
             <div className="flex items-center gap-2">
               <div className="relative">
+                {/* 🟢 Priority: iconUrl > avatarUrl > default */}
                 {user.avatarUrl ? (
-                  <img src={user.avatarUrl} alt={user.name} className="w-8 h-8 rounded-full object-cover" />
+                  <img
+                    src={user.avatarUrl}
+                    alt="icon"
+                    className="w-8 h-8 rounded-full object-cover border border-muted-foreground"
+                  />
+                ) : user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.name}
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
                 ) : (
                   <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-muted-foreground" />
                   </div>
                 )}
+
                 <StatusIndicator
                   status="online"
                   size="sm"
                   className="absolute -bottom-0.5 -right-0.5 border-2 border-background"
                 />
               </div>
+
+              {/* 👤 Name + privacy badge */}
               <div className="hidden sm:block">
-                <p className="text-sm font-medium">{user.name}</p>
-                <div className="flex items-center gap-2">
-                  <Badge variant={user.privacy ? 'secondary' : 'default'} className="text-xs">
-                    {user.privacy ? t('private') : t('public')}
-                  </Badge>
-                </div>
+                <p className="text-sm font-medium flex items-center gap-1">
+                  {user.name}
+                  {user.iconUrl && (
+                    <img
+                      src={user.iconUrl}
+                      alt="icon"
+                      className="w-4 h-4 rounded-full object-cover border border-muted-foreground"
+                    />
+                  )}
+                </p>
+                <Badge
+                  variant={user.privacy ? "secondary" : "default"}
+                  className="text-xs"
+                >
+                  {user.privacy ? t("private") : t("public")}
+                </Badge>
               </div>
             </div>
           )}
@@ -97,7 +129,7 @@ export const Header: React.FC = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
               type="text"
-              placeholder={t('searchUsers')}
+              placeholder={t("searchUsers")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"

@@ -1,4 +1,4 @@
-import { LogOut } from "lucide-react"; 
+import { LogOut } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import {
   User,
@@ -26,7 +26,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useRecoilState } from "recoil";
 import userAtom from "../Aouth/UserAtom.js";
 
-
 export const Profile: React.FC = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -46,24 +45,24 @@ export const Profile: React.FC = () => {
 
   // 🟢 جلب اليوزر وحفظه في Recoil
   useEffect(() => {
-  const fetchUser = async () => {
-    try {
-      const res = await axios.get("http://localhost:4000/api/users/me", {
-        withCredentials: true,
-      });
-      setUser(res.data); // ✅ خزّن البيانات في الـ atom
-      setFormData({
-        name: res.data.name,
-        status: res.data.status || "",
-        privacy: res.data.privacy,
-        newPassword: "",
-      });
-    } catch (err) {
-      toast({ title: "Failed to load profile", variant: "destructive" });
-    }
-  };
-  fetchUser();
-}, [setUser, toast]);
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get("http://localhost:4000/api/users/me", {
+          withCredentials: true,
+        });
+        setUser(res.data); // ✅ خزّن البيانات في الـ atom
+        setFormData({
+          name: res.data.name,
+          status: res.data.status || "",
+          privacy: res.data.privacy,
+          newPassword: "",
+        });
+      } catch (err) {
+        toast({ title: "Failed to load profile", variant: "destructive" });
+      }
+    };
+    fetchUser();
+  }, [setUser, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +86,7 @@ export const Profile: React.FC = () => {
     }
   };
 
- const handleLogout = async () => {
+  const handleLogout = async () => {
     try {
       setIsLoading(true);
       await axios.post(
@@ -108,7 +107,6 @@ export const Profile: React.FC = () => {
       setIsLoading(false);
     }
   };
-
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -173,27 +171,46 @@ export const Profile: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    const uploaded = await uploadImage(file, user.iconPath);
-    if (!uploaded) {
-      toast({ title: "Failed to upload icon", variant: "destructive" });
-      return;
+    try {
+      setIsLoading(true);
+
+      // 🟢 رفع الأيقونة إلى Supabase وحذف القديمة أولاً
+      const uploaded = await uploadImage(file, user.iconPath);
+      if (!uploaded) {
+        toast({ title: "فشل رفع الأيقونة", variant: "destructive" });
+        return;
+      }
+
+      // 🟢 تحديث بيانات المستخدم محلياً
+      const updatedUser = {
+        ...user,
+        iconUrl: uploaded.url,
+        iconPath: uploaded.path,
+      };
+      setUser(updatedUser);
+
+      // 🟢 تحديث البيانات في السيرفر
+      await axios.put(
+        "http://localhost:4000/api/users/update",
+        { iconUrl: uploaded.url, iconPath: uploaded.path },
+        { withCredentials: true }
+      );
+
+      toast({ title: "تم تحديث الأيقونة بنجاح!" });
+    } catch (err: any) {
+      console.error("Icon update error:", err);
+      toast({
+        title: err.response?.data?.message || "حدث خطأ أثناء تحديث الأيقونة",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    const updatedUser = {
-      ...user,
-      iconUrl: uploaded.url,
-      iconPath: uploaded.path,
-    };
-    setUser(updatedUser);
-
-    await axios.put("http://localhost:4000/api/users/updateprofile", updatedUser);
-
-    toast({ title: "Icon updated!" });
   };
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Profile Header */}
-         <div className="flex justify-end">
+      <div className="flex justify-end">
         <Button
           variant="destructive"
           size="sm"
