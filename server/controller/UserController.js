@@ -1,7 +1,8 @@
 import Semester from "../models/semesterModel.js";
-import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import generateTokenAndSetCookie from "../generate/generateJwtAndSetToken.js";
+import User from "../models/userModel.js";
+import { calculateGPA, calculateCumulativePercentage } from "../utils/gpa.js";
 
 
 export const getUserById = async (req, res) => {
@@ -25,16 +26,12 @@ export const getUserById = async (req, res) => {
       gpa: s.gpa ?? 0
     }));
 
-    // حسب الـ cumulative GPA لو تحب
-    const cumulativeGPA =
-      mappedSemesters.reduce((acc, s) => acc + (s.gpa || 0), 0) /
-      (mappedSemesters.length || 1);
 
     res.json({
       user: {
         ...user,
         semesters: mappedSemesters,
-        gpa: cumulativeGPA
+        gpa: user.gpa || null
       }
     });
   } catch (err) {
@@ -45,39 +42,79 @@ export const getUserById = async (req, res) => {
 
 
 
+
 export const searchUsers = async (req, res) => {
-  const query = req.query.q || "";
-  if (!query.trim()) return res.json([]);
+  try {
+    const query = req.query.q || "";
+    if (!query.trim()) return res.json([]);
 
-  const regex = new RegExp(query, "i");
-  const users = await User.find({
-    $or: [{ name: regex }, { email: regex }]
-  }).select("name email avatarUrl privacy status gpa semesters");
+    const regex = new RegExp(query, "i");
 
+    const users = await User.find({
+      $or: [{ name: regex }, { email: regex }],
+    })
+      .select("name email avatarUrl privacy status semesters")
+      .populate({
+        path: "semesters",
+        select: "name courses", // تأكد أن الـ ref موجود في User Schema
+      });
 
-  const result = users.map(u => ({
-    id: u._id,
-    name: u.name,
-    email: u.email,
-    avatarUrl: u.avatarUrl,
-    privacy: u.privacy,
-    status: u.status,
-    gpa: u.privacy ? undefined : u.gpa,
-    semesters: u.privacy ? undefined : u.semesters,
-  }));
+    const result = users.map((u) => {
+      let gpa = null;
+      let semestersCount = 0;
+      let coursesCount = 0;
 
-  res.json(result);
+      if (!u.privacy && Array.isArray(u.semesters)) {
+        const semesters = u.semesters || [];
+
+        // احسب GPA لكل سمستر
+        const semestersWithGpa = semesters.map((sem) => ({
+          ...sem.toObject(),
+          gpa: calculateGPA(sem.courses || []),
+        }));
+
+        // احسب cumulative GPA
+        gpa = calculateCumulativePercentage(
+          semestersWithGpa.map((s) => ({
+            courses: s.courses,
+            percentage: s.gpa,
+          }))
+        );
+
+        semestersCount = semesters.length;
+        coursesCount = semesters.reduce(
+          (acc, sem) => acc + (sem.courses?.length || 0),
+          0
+        );
+      }
+
+      return {
+        id: u._id.toString(),
+        name: u.name,
+        email: u.email,
+        avatarUrl: u.avatarUrl,
+        privacy: u.privacy,
+        status: u.status,
+        gpa,
+        semesters: semestersCount,
+        courses: coursesCount,
+      };
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error("❌ searchUsers error:", err);
+    res.status(500).json({ message: "Failed to search users", error: err.message });
+  }
 };
-
-
 export const logoutUser = async (req, res) => {
-    try {
-        res.cookie("jwt", "", { maxAge: 1 })
-        res.status(200).json({ message: "user looged out sexyfully" })
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-        console.log("error in login ", err.message)
-    }
+  try {
+    res.cookie("jwt", "", { maxAge: 1 })
+    res.status(200).json({ message: "user looged out sexyfully" })
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+    console.log("error in login ", err.message)
+  }
 }
 export const getMe = async (req, res) => {
   try {

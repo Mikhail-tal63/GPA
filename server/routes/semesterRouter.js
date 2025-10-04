@@ -10,4 +10,7 @@ router.get("/getSemesters", protactRoute, getSemesters);
 router.post("/create", protactRoute, createSemester);
 router.delete("/delete/:id", protactRoute, deleteSemester);
 
+
+
+
 export default router;

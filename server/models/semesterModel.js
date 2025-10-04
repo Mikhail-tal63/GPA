@@ -30,19 +30,28 @@ const semesterSchema = new mongoose.Schema({
     required: true
   },
   courses: [courseSchema],
+
   gpa: {
-    type: Number
+    type: Number,
+    default: null // أحسن من undefined أو NaN
   },
 }, { timestamps: true });
 
+// semesterSchema.pre("save", function (next) {
+//   if (this.courses && this.courses.length > 0) {
+//     // نضمن إن كل القيم أرقام
+//     const validGrades = this.courses
+//       .map(c => Number(c.grade))
+//       .filter(g => !isNaN(g));
 
-semesterSchema.pre("save",
-  function (next) {
-    if (this.courses.length > 0) {
-      const totalGrade = this.courses.reduce((acc, c) => acc + c.grade, 0);
-      this.gpa = totalGrade / this.courses.length;
-    }
-    next();
-  });
+//     if (validGrades.length > 0) {
+//       const totalGrade = validGrades.reduce((acc, g) => acc + g, 0);
+//       this.gpa = totalGrade / validGrades.length;
+//     } else {
+//       this.gpa = null; // مفيش قيم صالحة
+//     }
+//   }
+//   next();
+// });
 
 export default mongoose.model("Semester", semesterSchema);

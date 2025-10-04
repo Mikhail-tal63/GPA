@@ -1,74 +1,99 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { Search as SearchIcon, User, Lock, GraduationCap } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { StatusIndicator } from '@/components/ui/status-indicator';
-import axios from 'axios';
-interface UserResult {
-  id: string;
-  name: string;
-  email: string;
-  avatarUrl?: string;
-  privacy: boolean;
-  status: string;
-  gpa?: number;
-  semesters?: number;
-}
+import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Search as SearchIcon, User, Lock, GraduationCap } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { StatusIndicator } from "@/components/ui/status-indicator";
+import axios from "axios";
+
+// 🟢 Utils
+import { calculateGPA, calculateCumulativePercentage } from "@/utils/gpa";
 
 export const Search: React.FC = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [results, setResults] = useState<UserResult[]>([]);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [results, setResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-
   const performSearch = async (query: string) => {
-  if (!query.trim()) {
-    setResults([]);
-    return;
-  }
+    if (!query.trim()) {
+      setResults([]);
+      return;
+    }
 
-  setIsLoading(true);
-  try {
-    const res = await axios.get(`http://localhost:4000/api/users/searchUsers?q=${encodeURIComponent(query)}`, { withCredentials: true });
+    setIsLoading(true);
+    try {
+      const res = await axios.get(
+        `http://localhost:4000/api/users/searchUsers?q=${encodeURIComponent(
+          query
+        )}`,
+        { withCredentials: true }
+      );
 
-    setResults(res.data); 
-  } catch (err) {
-    console.error(err);
-    setResults([]);
-  } finally {
-    setIsLoading(false);
-  }
-};
+      const mapped = (res.data || []).map((user: any) => {
+        const semesters = Array.isArray(user.semesters) ? user.semesters : [];
 
+        // 🧮 حساب GPA الكلي
+        const cumulativeGPA = calculateCumulativePercentage(
+          semesters.map((sem: any) => ({
+            courses: sem.courses || [],
+            percentage: calculateGPA(sem.courses || []),
+          }))
+        );
+
+        const totalCourses = semesters.reduce(
+          (acc: number, sem: any) => acc + (sem.courses?.length || 0),
+          0
+        );
+
+        return {
+          id: user.id || user._id,
+          name: user.name,
+          email: user.email,
+          avatarUrl: user.avatarUrl,
+          privacy: user.privacy,
+          status: user.status,
+          gpa: cumulativeGPA,
+          semesters: semesters.length,
+          courses: totalCourses,
+        };
+      });
+
+      setResults(mapped);
+    } catch (err: any) {
+      console.error("❌ Search error:", err);
+      setResults([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // جلب النتائج عند تحميل الصفحة أو تغيير العنوان
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const q = params.get('q');
+    const q = params.get("q");
     if (q) {
       setSearchQuery(q);
       performSearch(q);
     }
   }, [location.search]);
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      performSearch(searchQuery.trim());
+    }
+  };
 
-
-
-const handleSearch = (e: React.FormEvent) => {
-  e.preventDefault();
-  if (searchQuery.trim()) {
-    navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    performSearch(searchQuery.trim());
-  }
-};
-
-
-  const handleUserClick = (userId: string) => {
+  const handleUserClick = (userId: string | undefined) => {
+    if (!userId) return;
     navigate(`/users/${userId}`);
   };
 
@@ -95,7 +120,7 @@ const handleSearch = (e: React.FormEvent) => {
               <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
                 type="text"
-                placeholder={t('searchUsers')}
+                placeholder={t("searchUsers")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -119,9 +144,9 @@ const handleSearch = (e: React.FormEvent) => {
             Search Results ({results.length})
           </h2>
           <div className="space-y-3">
-            {results.map((user) => (
-              <Card 
-                key={user.id} 
+            {results.map((user, idx) => (
+              <Card
+                key={user.id || idx} // ✅ حل تحذير الـ key
                 className="card-hover cursor-pointer"
                 onClick={() => handleUserClick(user.id)}
               >
@@ -147,43 +172,32 @@ const handleSearch = (e: React.FormEvent) => {
                       />
                     </div>
 
-                    {/* User Info */}
+                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold truncate">{user.name}</h3>
-                        <Badge variant={user.privacy ? 'secondary' : 'default'} className="flex items-center gap-1">
+                        <Badge
+                          variant={user.privacy ? "secondary" : "default"}
+                          className="flex items-center gap-1"
+                        >
                           {user.privacy ? (
                             <>
                               <Lock className="w-3 h-3" />
-                              {t('private')}
+                              {t("private")}
                             </>
                           ) : (
                             <>
                               <GraduationCap className="w-3 h-3" />
-                              {t('public')}
+                              {t("public")}
                             </>
                           )}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground truncate mb-1">
-                        {user.email}
-                      </p>
+
                       {user.status && (
                         <p className="text-sm text-foreground">{user.status}</p>
                       )}
                     </div>
-
-                    {/* Stats (if public) */}
-                    {!user.privacy && user.gpa && (
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-primary">
-                          {user.gpa.toFixed(2)}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          GPA ({user.semesters} sem.)
-                        </p>
-                      </div>
-                    )}
 
                     {user.privacy && (
                       <div className="text-center p-2">
@@ -199,8 +213,8 @@ const handleSearch = (e: React.FormEvent) => {
         </div>
       )}
 
-      {/* No Results */}
-      {searchQuery && !isLoading && results.length === 0 && (
+      {/* Empty States */}
+      {!isLoading && searchQuery && results.length === 0 && (
         <Card className="text-center py-12">
           <CardContent>
             <SearchIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -212,7 +226,6 @@ const handleSearch = (e: React.FormEvent) => {
         </Card>
       )}
 
-      {/* Empty State */}
       {!searchQuery && (
         <Card className="text-center py-12">
           <CardContent>

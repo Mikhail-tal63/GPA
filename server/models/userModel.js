@@ -13,12 +13,10 @@ const userSchema = new mongoose.Schema({
   privacy: { type: Boolean, default: false },
   status: { type: String, default: "" },
 
-  gpa: { type: Number, default: null }, 
+  gpa: { type: Number, default: null },
 
 
-  semesters: [
-    { type: mongoose.Schema.Types.ObjectId, ref: "Semester" }
-  ]
+  semesters: [{ type: mongoose.Schema.Types.ObjectId, ref: "Semester" }]
 }, { timestamps: true });
 
 

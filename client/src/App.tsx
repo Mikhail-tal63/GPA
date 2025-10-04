@@ -44,11 +44,32 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 const AppRoutes = () => (
   <Routes>
     {/* Public Routes */}
-    <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-    <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+    <Route
+      path="/login"
+      element={
+        <PublicRoute>
+          <Login />
+        </PublicRoute>
+      }
+    />
+    <Route
+      path="/signup"
+      element={
+        <PublicRoute>
+          <Signup />
+        </PublicRoute>
+      }
+    />
 
     {/* Protected Routes */}
-    <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+    <Route
+      path="/"
+      element={
+        <ProtectedRoute>
+          <Layout />
+        </ProtectedRoute>
+      }
+    >
       <Route index element={<Home />} />
       <Route path="search" element={<Search />} />
       <Route path="tips" element={<Tips />} />

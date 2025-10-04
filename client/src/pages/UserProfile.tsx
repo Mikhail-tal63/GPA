@@ -5,10 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StatusIndicator } from "@/components/ui/status-indicator";
 
+// ✅ use the same utils you use elsewhere
+import { calculateGPA, calculateCumulativePercentage } from "@/utils/gpa";
+
 interface Course {
   name: string;
   code: string;
   grade: number;
+  credits?: number;
 }
 
 interface Semester {
@@ -18,21 +22,25 @@ interface Semester {
   courses: Course[];
 }
 
-interface UserProfile {
+interface UserProfileShape {
   id: string;
   name: string;
   email: string;
   avatarUrl?: string;
   privacy: boolean;
   status: string;
-  gpa?: number;
-  semesters?: Semester[];
+  gpa?: number; // we'll recompute this
+  semesters?: Semester[]; // we'll normalize + add gpa per semester
 }
 
 export const UserProfile: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profile, setProfile] = useState<UserProfileShape | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // formatting helpers
+  const fmt2 = (n: unknown) =>
+    Number.isFinite(n as number) ? (n as number).toFixed(2) : "0.00";
 
   useEffect(() => {
     if (userId) loadUserProfile(userId);
@@ -48,7 +56,43 @@ export const UserProfile: React.FC = () => {
       });
       if (!res.ok) throw new Error("Failed to fetch profile");
       const data = await res.json();
-      setProfile(data.user);
+
+      // ---- normalize + compute GPAs here ----
+      const u = data?.user ?? {};
+      const rawSemesters: any[] = Array.isArray(u.semesters) ? u.semesters : [];
+
+      // ensure each semester has courses array and computed GPA
+      const semesters: Semester[] = rawSemesters.map((s, idx) => {
+        const courses: Course[] = Array.isArray(s?.courses) ? s.courses : [];
+        const perSemesterGpa = calculateGPA(courses || []);
+        return {
+          id: s?.id || s?._id || String(idx),
+          name: s?.name ?? `Semester ${idx + 1}`,
+          gpa: perSemesterGpa,
+          courses,
+        };
+      });
+
+      // cumulative from all semester courses (credit-weighted inside util)
+      const cumulativeGPA = calculateCumulativePercentage(
+        semesters.map((s) => ({
+          courses: s.courses,
+          percentage: s.gpa,
+        }))
+      );
+
+      const normalized: UserProfileShape = {
+        id: u.id || u._id,
+        name: u.name ?? "Unknown",
+        email: u.email ?? "",
+        avatarUrl: u.avatarUrl,
+        privacy: Boolean(u.privacy),
+        status: u.status ?? "",
+        gpa: cumulativeGPA,
+        semesters,
+      };
+
+      setProfile(normalized);
     } catch (err) {
       console.error("Error loading profile:", err);
       setProfile(null);
@@ -62,7 +106,9 @@ export const UserProfile: React.FC = () => {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground font-medium">Loading profile...</p>
+          <p className="text-muted-foreground font-medium">
+            Loading profile...
+          </p>
         </div>
       </div>
     );
@@ -77,6 +123,13 @@ export const UserProfile: React.FC = () => {
         </p>
       </div>
     );
+
+  const semestersCount = profile.semesters?.length ?? 0;
+  const coursesCount =
+    profile.semesters?.reduce(
+      (acc, sem) => acc + (Array.isArray(sem.courses) ? sem.courses.length : 0),
+      0
+    ) ?? 0;
 
   return (
     <div className="max-w-3xl mx-auto space-y-8 px-4">
@@ -104,7 +157,10 @@ export const UserProfile: React.FC = () => {
           <div className="flex-1 text-center md:text-left">
             <div className="flex flex-col md:flex-row md:items-center md:gap-4 mb-2">
               <h1 className="text-3xl font-bold">{profile.name}</h1>
-              <Badge variant={profile.privacy ? "secondary" : "default"} className="mt-2 md:mt-0">
+              <Badge
+                variant={profile.privacy ? "secondary" : "default"}
+                className="mt-2 md:mt-0"
+              >
                 {profile.privacy ? "Private" : "Public"}
               </Badge>
             </div>
@@ -122,14 +178,18 @@ export const UserProfile: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="card-hover text-center shadow hover:shadow-lg transition-shadow duration-300">
             <CardContent className="pt-6">
-              <div className="text-4xl font-bold text-primary mb-2">{profile.gpa?.toFixed(2) || 0}</div>
+              <div className="text-4xl font-bold text-primary mb-2">
+                {fmt2(profile.gpa)}
+              </div>
               <p className="text-sm text-muted-foreground">Cumulative GPA</p>
             </CardContent>
           </Card>
 
           <Card className="card-hover text-center shadow hover:shadow-lg transition-shadow duration-300">
             <CardContent className="pt-6">
-              <div className="text-4xl font-bold text-accent mb-2">{profile.semesters?.length || 0}</div>
+              <div className="text-4xl font-bold text-accent mb-2">
+                {semestersCount}
+              </div>
               <p className="text-sm text-muted-foreground">Semesters</p>
             </CardContent>
           </Card>
@@ -137,7 +197,7 @@ export const UserProfile: React.FC = () => {
           <Card className="card-hover text-center shadow hover:shadow-lg transition-shadow duration-300">
             <CardContent className="pt-6">
               <div className="text-4xl font-bold text-success mb-2">
-                {profile.semesters?.reduce((acc, sem) => acc + (sem.courses?.length || 0), 0) || 0}
+                {coursesCount}
               </div>
               <p className="text-sm text-muted-foreground">Courses</p>
             </CardContent>
@@ -158,9 +218,9 @@ export const UserProfile: React.FC = () => {
         </Card>
       ) : (
         <div className="space-y-4">
-          {profile.semesters?.map((sem) => (
+          {profile.semesters?.map((sem, idx) => (
             <Card
-              key={sem.id}
+              key={sem.id || idx}
               className="card-hover shadow hover:shadow-lg transition-shadow duration-300"
             >
               <CardHeader>
@@ -171,24 +231,30 @@ export const UserProfile: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold">{sem.name}</h3>
-                      <p className="text-sm text-muted-foreground">{sem.courses?.length} courses</p>
+                      <p className="text-sm text-muted-foreground">
+                        {sem.courses?.length ?? 0} courses
+                      </p>
                     </div>
                   </div>
-                  <Badge variant="outline">{sem.gpa?.toFixed(2)}</Badge>
+                  <Badge variant="outline">{fmt2(sem.gpa)}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {sem.courses?.map((course, idx) => (
+                  {sem.courses?.map((course, cIdx) => (
                     <div
-                      key={idx}
+                      key={`${sem.id || idx}-${course.code || cIdx}`}
                       className="flex items-center justify-between p-2 bg-muted/30 rounded hover:bg-muted/50 transition-colors"
                     >
                       <div>
                         <span className="font-medium">{course.name}</span>
-                        <span className="text-sm text-muted-foreground ml-2">({course.code})</span>
+                        <span className="text-sm text-muted-foreground ml-2">
+                          ({course.code})
+                        </span>
                       </div>
-                      <Badge variant="outline">{course.grade.toFixed(1)}</Badge>
+                      <Badge variant="outline">
+                        {Number(course.grade).toFixed(1)}
+                      </Badge>
                     </div>
                   ))}
                 </div>

@@ -7,9 +7,9 @@ const protactRoute = async (req, res, next) => {
             return res.status(401).json({ message: "unauthenticated no token" })
         }
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log(decoded)
+
         const user = await User.findById(decoded.user_id).select("-password");
-        console.log(user)
+
         req.user = user;
 
 
