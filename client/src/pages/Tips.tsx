@@ -43,27 +43,6 @@ export const Tips: React.FC = () => {
         </div>
       </div>
 
-      {/* GPA Benchmarks */}
-      <Card className="card-hover">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Award className="w-5 h-5 text-primary" />
-            {t("tipsPage.benchmarksTitle")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {gpaBenchmarks.map((b, i) => (
-              <div key={i} className="p-3 border rounded-lg">
-                <Badge className="grade-good">{b.range}</Badge>
-                <h4 className="font-medium mt-2">{b.label}</h4>
-                <p className="text-sm text-muted-foreground">{b.description}</p>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Tips Grid */}
       <div className="grid gap-6 md:grid-cols-2">
         {tipsList.map((tip, index) => {
