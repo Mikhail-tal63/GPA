@@ -32,9 +32,7 @@ export const DesktopSidebar: React.FC = () => {
         {/* Logo */}
         <div className="p-6 border-b">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">GPA</span>
-            </div>
+            <div className=""></div>
             <div>
               <h1 className="text-lg font-bold text-foreground">GPA Manager</h1>
               <p className="text-xs text-muted-foreground">

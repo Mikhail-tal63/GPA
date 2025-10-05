@@ -244,11 +244,6 @@ export const Profile: React.FC = () => {
                   <User className="w-10 h-10 text-white" />
                 </div>
               )}
-              <StatusIndicator
-                status="online"
-                size="lg"
-                className="absolute -bottom-1 -right-1 border-2 border-background"
-              />
             </div>
 
             <div className="flex-1">

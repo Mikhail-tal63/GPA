@@ -32,9 +32,7 @@ export const Header: React.FC = () => {
       <div className="flex items-center justify-between px-4 py-3">
         {/* Logo */}
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">GPA</span>
-          </div>
+          <div className=""></div>
           <h1 className="text-lg font-semibold text-foreground">
             {t("welcome")}
           </h1>
@@ -90,12 +88,6 @@ export const Header: React.FC = () => {
                     <User className="w-4 h-4 text-muted-foreground" />
                   </div>
                 )}
-
-                <StatusIndicator
-                  status="online"
-                  size="sm"
-                  className="absolute -bottom-0.5 -right-0.5 border-2 border-background"
-                />
               </div>
 
               {/* 👤 Name + privacy badge */}

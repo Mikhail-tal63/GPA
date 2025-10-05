@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import { User, Lock, GraduationCap, MessageCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { StatusIndicator } from "@/components/ui/status-indicator";
 import { calculateGPA, calculateCumulativePercentage } from "@/utils/gpa";
 
 interface Course {
@@ -144,11 +143,6 @@ export const UserProfile: React.FC = () => {
                 <User className="w-12 h-12 text-white" />
               </div>
             )}
-            <StatusIndicator
-              status="online"
-              size="lg"
-              className="absolute -bottom-1 -right-1 border-2 border-white"
-            />
           </div>
           <div className="flex-1 text-center md:text-left">
             <div className="flex flex-col md:flex-row md:items-center md:gap-4 mb-2">
